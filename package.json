@@ -1,0 +1,32 @@
+{
+    "name": "sabor-express",
+    "displayName": "Sabor Express",
+    "version": "1.0.0",
+    "description": "Sistema de pedidos para delivery",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "ecosystem:cordova"
+    ],
+    "author": "Apache Cordova Team",
+    "license": "Apache-2.0",
+    "devDependencies": {
+        "cordova-android": "^12.0.0",
+        "cordova-browser": "^6.0.0",
+        "cordova-plugin-bluetooth-serial": "^0.4.7"
+    },
+    "cordova": {
+        "platforms": [
+            "android",
+            "browser"
+        ],
+        "plugins": {
+            "cordova-plugin-bluetooth-serial": {}
+        }
+    },
+    "dependencies": {
+        "framework7": "^7.1.5"
+    }
+}

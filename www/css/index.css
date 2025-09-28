@@ -1,0 +1,139 @@
+:root {
+    --f7-theme-color: #ff4500;
+    --f7-theme-color-rgb: 255, 69, 0;
+    --f7-theme-color-shade: #e63e00;
+    --f7-theme-color-tint: #ff5719;
+}
+
+/* Navbar */
+.navbar {
+    --f7-navbar-bg-color: var(--f7-theme-color);
+    --f7-navbar-text-color: #fff;
+    --f7-navbar-link-color: #fff;
+    --f7-navbar-title-font-size: 20px;
+    --f7-navbar-title-font-weight: 600;
+}
+
+.navbar .material-icons {
+    font-size: 24px;
+}
+
+/* Panel/Sidebar */
+.panel {
+    --f7-panel-width: 260px;
+    background: #fff;
+}
+
+.panel .navbar {
+    --f7-navbar-bg-color: var(--f7-theme-color);
+    --f7-navbar-text-color: #fff;
+}
+
+.panel .list ul {
+    background: transparent;
+}
+
+.panel .list ul:before,
+.panel .list ul:after {
+    display: none;
+}
+
+.panel .item-media {
+    min-width: 40px;
+}
+
+.panel .item-media .material-icons {
+    color: var(--f7-theme-color);
+    font-size: 24px;
+}
+
+.panel .item-inner {
+    padding-right: 16px;
+}
+
+.panel .item-title {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Buttons */
+.button {
+    --f7-button-bg-color: var(--f7-theme-color);
+    --f7-button-text-color: #fff;
+    --f7-button-height: 44px;
+    --f7-button-font-size: 16px;
+    --f7-button-font-weight: 600;
+    text-transform: none;
+}
+
+.button-large {
+    --f7-button-height: 56px;
+    --f7-button-font-size: 18px;
+}
+
+.button .material-icons {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+
+/* Page Content */
+.page-content {
+    --f7-page-bg-color: #f5f5f5;
+    padding: 16px;
+}
+
+/* Forms */
+.list input[type="text"],
+.list input[type="password"],
+.list input[type="email"],
+.list input[type="tel"],
+.list textarea {
+    --f7-input-height: 44px;
+    --f7-input-font-size: 16px;
+}
+
+/* Cards */
+.card {
+    margin: 8px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Home Buttons */
+.home-buttons {
+    margin-top: 32px;
+}
+
+.home-buttons .button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    margin: 8px;
+    border-radius: 12px;
+}
+
+.home-buttons .button span {
+    margin-top: 8px;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+    .panel {
+        --f7-panel-width: 300px;
+    }
+}
+
+/* Animations */
+.panel-cover {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button {
+    transition: opacity 200ms ease;
+}
+
+.button:active {
+    opacity: 0.8;
+}

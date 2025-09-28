@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sabor Express - Produtos</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/sb-admin-2.css">
+    <!-- API Script -->
+    <script src="../js/api.js"></script>
+</head>
+
+<body>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Sabor Express</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gestão
+            </div>
+
+            <!-- Nav Item - Novo Pedido -->
+            <li class="nav-item">
+                <a class="nav-link" href="novo-pedido.html">
+                    <i class="fas fa-fw fa-shopping-cart"></i>
+                    <span>Novo Pedido</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Produtos -->
+            <li class="nav-item active">
+                <a class="nav-link" href="produtos.html">
+                    <i class="fas fa-fw fa-hamburger"></i>
+                    <span>Produtos</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Sabores -->
+            <li class="nav-item">
+                <a class="nav-link" href="sabores.html">
+                    <i class="fas fa-fw fa-pizza-slice"></i>
+                    <span>Sabores</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Tamanhos -->
+            <li class="nav-item">
+                <a class="nav-link" href="tamanhos.html">
+                    <i class="fas fa-fw fa-expand-arrows-alt"></i>
+                    <span>Tamanhos</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Sistema
+            </div>
+
+            <!-- Nav Item - Configurações -->
+            <li class="nav-item">
+                <a class="nav-link" href="configuracoes.html">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Brand -->
+                    <div class="topbar-brand">
+                        <i class="fas fa-hamburger text-primary"></i> Gerenciar Produtos
+                    </div>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Administrador</span>
+                                <i class="fas fa-user-circle fa-fw"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Produtos</h1>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProdutoModal">
+                            <i class="fas fa-plus"></i> Adicionar Produto
+                        </button>
+                    </div>
+
+                    <!-- DataTales Example -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Lista de Produtos</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Nome</th>
+                                            <th>Categoria</th>
+                                            <th>Preço</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="produtosTableBody">
+                                        <!-- Dados serão carregados via JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Sabor Express 2024</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+        </div>
+        <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Add Produto Modal -->
+    <div class="modal fade" id="addProdutoModal" tabindex="-1" aria-labelledby="addProdutoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProdutoModalLabel">Adicionar Produto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="produtoForm">
+                        <div class="mb-3">
+                            <label for="produtoNome" class="form-label">Nome do Produto</label>
+                            <input type="text" class="form-control" id="produtoNome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="produtoCategoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="produtoCategoria" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="Pizza">Pizza</option>
+                                <option value="Pastel">Pastel</option>
+                                <option value="Bebida">Bebida</option>
+                                <option value="Sobremesa">Sobremesa</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="produtoPreco" class="form-label">Preço (R$)</label>
+                            <input type="number" class="form-control" id="produtoPreco" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="produtoObservacao" class="form-label">Observação</label>
+                            <textarea class="form-control" id="produtoObservacao" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="produtoAtivo" checked>
+                                <label class="form-check-label" for="produtoAtivo">
+                                    Produto Ativo
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarProduto()">Salvar Produto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Produto Modal -->
+    <div class="modal fade" id="editProdutoModal" tabindex="-1" aria-labelledby="editProdutoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProdutoModalLabel">Editar Produto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProdutoForm">
+                        <input type="hidden" id="editProdutoId">
+                        <div class="mb-3">
+                            <label for="editProdutoNome" class="form-label">Nome do Produto</label>
+                            <input type="text" class="form-control" id="editProdutoNome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProdutoCategoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="editProdutoCategoria" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="Pizza">Pizza</option>
+                                <option value="Pastel">Pastel</option>
+                                <option value="Bebida">Bebida</option>
+                                <option value="Sobremesa">Sobremesa</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProdutoPreco" class="form-label">Preço (R$)</label>
+                            <input type="number" class="form-control" id="editProdutoPreco" step="0.01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editProdutoObservacao" class="form-label">Observação</label>
+                            <textarea class="form-control" id="editProdutoObservacao" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editProdutoAtivo">
+                                <label class="form-check-label" for="editProdutoAtivo">
+                                    Produto Ativo
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="atualizarProduto()">Atualizar Produto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom scripts for all pages-->
+    <script>
+        // Toggle the side navigation
+        (function($) {
+            "use strict";
+
+            $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
+                $("body").toggleClass("sidebar-toggled");
+                $(".sidebar").toggleClass("toggled");
+                if ($(".sidebar").hasClass("toggled")) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+            $(window).resize(function() {
+                if ($(window).width() < 768) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+                
+                if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
+                    $("body").addClass("sidebar-toggled");
+                    $(".sidebar").addClass("toggled");
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+        })(jQuery);
+
+        // Produtos management
+        let produtos = [];
+
+        async function carregarProdutos() {
+            try {
+                // Carregar produtos da API
+                produtos = await api.getProdutos();
+                
+                const tbody = document.getElementById('produtosTableBody');
+                tbody.innerHTML = '';
+                
+                produtos.forEach(produto => {
+                    const row = `
+                        <tr>
+                            <td>${produto.nome}</td>
+                            <td>${produto.categoria}</td>
+                            <td>R$ ${produto.preco.toFixed(2)}</td>
+                            <td>
+                                <span class="badge ${produto.ativo ? 'badge-success' : 'badge-danger'}">
+                                    ${produto.ativo ? 'Ativo' : 'Inativo'}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="editarProduto('${produto._id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="excluirProduto('${produto._id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                alert('Erro ao carregar produtos. Verifique se a API está funcionando.');
+            }
+        }
+
+        async function salvarProduto() {
+            const nome = document.getElementById('produtoNome').value;
+            const categoria = document.getElementById('produtoCategoria').value;
+            const preco = parseFloat(document.getElementById('produtoPreco').value);
+            const descricao = document.getElementById('produtoObservacao').value;
+            const ativo = document.getElementById('produtoAtivo').checked;
+
+            if (!nome || !categoria || !preco) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            try {
+                await api.request('/produtos', {
+                    method: 'POST',
+                    body: JSON.stringify({ nome, categoria, preco, descricao, ativo })
+                });
+
+                await carregarProdutos();
+                
+                // Limpar formulário
+                document.getElementById('produtoForm').reset();
+                document.getElementById('produtoAtivo').checked = true;
+                
+                // Fechar modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addProdutoModal'));
+                modal.hide();
+                
+                alert('Produto criado com sucesso!');
+            } catch (error) {
+                console.error('Erro ao criar produto:', error);
+                alert('Erro ao criar produto. Tente novamente.');
+            }
+        }
+
+        function editarProduto(id) {
+            const produto = produtos.find(p => p._id === id);
+            if (!produto) return;
+
+            document.getElementById('editProdutoId').value = produto._id;
+            document.getElementById('editProdutoNome').value = produto.nome;
+            document.getElementById('editProdutoCategoria').value = produto.categoria;
+            document.getElementById('editProdutoPreco').value = produto.preco;
+            document.getElementById('editProdutoObservacao').value = produto.descricao || '';
+            document.getElementById('editProdutoAtivo').checked = produto.ativo;
+
+            const modal = new bootstrap.Modal(document.getElementById('editProdutoModal'));
+            modal.show();
+        }
+
+        async function atualizarProduto() {
+            const id = document.getElementById('editProdutoId').value;
+            const nome = document.getElementById('editProdutoNome').value;
+            const categoria = document.getElementById('editProdutoCategoria').value;
+            const preco = parseFloat(document.getElementById('editProdutoPreco').value);
+            const descricao = document.getElementById('editProdutoObservacao').value;
+            const ativo = document.getElementById('editProdutoAtivo').checked;
+
+            if (!nome || !categoria || !preco) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            try {
+                await api.request(`/produtos/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ nome, categoria, preco, descricao, ativo })
+                });
+                
+                await carregarProdutos();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editProdutoModal'));
+                modal.hide();
+                
+                alert('Produto atualizado com sucesso!');
+            } catch (error) {
+                console.error('Erro ao atualizar produto:', error);
+                alert('Erro ao atualizar produto. Tente novamente.');
+            }
+        }
+
+        async function excluirProduto(id) {
+            if (confirm('Tem certeza que deseja excluir este produto?')) {
+                try {
+                    await api.request(`/produtos/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    await carregarProdutos();
+                    alert('Produto excluído com sucesso!');
+                } catch (error) {
+                    console.error('Erro ao excluir produto:', error);
+                    alert('Erro ao excluir produto. Tente novamente.');
+                }
+            }
+        }
+
+        // Carregar produtos ao inicializar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarProdutos();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sabor Express - Tamanhos</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/sb-admin-2.css">
+</head>
+
+<body>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Sabor Express</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gestão
+            </div>
+
+            <!-- Nav Item - Novo Pedido -->
+            <li class="nav-item">
+                <a class="nav-link" href="novo-pedido.html">
+                    <i class="fas fa-fw fa-shopping-cart"></i>
+                    <span>Novo Pedido</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Produtos -->
+            <li class="nav-item">
+                <a class="nav-link" href="produtos.html">
+                    <i class="fas fa-fw fa-hamburger"></i>
+                    <span>Produtos</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Sabores -->
+            <li class="nav-item">
+                <a class="nav-link" href="sabores.html">
+                    <i class="fas fa-fw fa-pizza-slice"></i>
+                    <span>Sabores</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Tamanhos -->
+            <li class="nav-item active">
+                <a class="nav-link" href="tamanhos.html">
+                    <i class="fas fa-fw fa-expand-arrows-alt"></i>
+                    <span>Tamanhos</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Sistema
+            </div>
+
+            <!-- Nav Item - Configurações -->
+            <li class="nav-item">
+                <a class="nav-link" href="configuracoes.html">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Brand -->
+                    <div class="topbar-brand">
+                        <i class="fas fa-expand-arrows-alt text-primary"></i> Tamanhos de Pizza
+                    </div>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Administrador</span>
+                                <i class="fas fa-user-circle fa-fw"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Gerenciar Tamanhos</h1>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tamanhoModal" onclick="abrirModalTamanho()">
+                            <i class="fas fa-plus"></i> Adicionar Tamanho
+                        </button>
+                    </div>
+
+                    <!-- DataTales Example -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Lista de Tamanhos</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="tamanhosTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Nome</th>
+                                            <th>Preço Base</th>
+                                            <th>Multiplicador</th>
+                                            <th>Descrição</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tamanhosTableBody">
+                                        <!-- Dados serão carregados dinamicamente -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Sabor Express 2024</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+        </div>
+        <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Modal Tamanho -->
+    <div class="modal fade" id="tamanhoModal" tabindex="-1" aria-labelledby="tamanhoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tamanhoModalLabel">Adicionar Tamanho</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="tamanhoForm">
+                        <input type="hidden" id="tamanhoId">
+                        <div class="mb-3">
+                            <label for="nomeTamanho" class="form-label">Nome do Tamanho *</label>
+                            <input type="text" class="form-control" id="nomeTamanho" required>
+                            <div class="form-text">Ex: Pequena, Média, Grande, Família</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="precoBase" class="form-label">Preço Base *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="number" class="form-control" id="precoBase" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-text">Preço base para este tamanho</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="multiplicador" class="form-label">Multiplicador *</label>
+                            <input type="number" class="form-control" id="multiplicador" step="0.1" min="0.1" max="5" required>
+                            <div class="form-text">Multiplicador aplicado aos sabores (ex: 1.0 = 100%, 1.5 = 150%)</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="descricaoTamanho" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="descricaoTamanho" rows="3" placeholder="Descrição opcional do tamanho..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="ativoTamanho" checked>
+                                <label class="form-check-label" for="ativoTamanho">
+                                    Tamanho ativo
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarTamanho()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmação Exclusão -->
+    <div class="modal fade" id="confirmarExclusaoModal" tabindex="-1" aria-labelledby="confirmarExclusaoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmarExclusaoModalLabel">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir este tamanho?</p>
+                    <p class="text-danger"><strong>Esta ação não pode ser desfeita!</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmarExclusaoBtn">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom scripts for all pages-->
+    <script>
+        // Toggle the side navigation
+        (function($) {
+            "use strict";
+
+            $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
+                $("body").toggleClass("sidebar-toggled");
+                $(".sidebar").toggleClass("toggled");
+                if ($(".sidebar").hasClass("toggled")) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+            $(window).resize(function() {
+                if ($(window).width() < 768) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+                
+                if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
+                    $("body").addClass("sidebar-toggled");
+                    $(".sidebar").addClass("toggled");
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+        })(jQuery);
+
+        // Dados de exemplo
+        let tamanhos = [
+            { id: 1, nome: "Pequena", precoBase: 20.00, multiplicador: 0.8, descricao: "Pizza pequena - 4 fatias", ativo: true },
+            { id: 2, nome: "Média", precoBase: 25.00, multiplicador: 1.0, descricao: "Pizza média - 6 fatias", ativo: true },
+            { id: 3, nome: "Grande", precoBase: 32.00, multiplicador: 1.3, descricao: "Pizza grande - 8 fatias", ativo: true },
+            { id: 4, nome: "Família", precoBase: 40.00, multiplicador: 1.6, descricao: "Pizza família - 12 fatias", ativo: true }
+        ];
+
+        let proximoId = 5;
+        let tamanhoParaExcluir = null;
+
+        function carregarTamanhos() {
+            const tbody = document.getElementById('tamanhosTableBody');
+            tbody.innerHTML = '';
+
+            tamanhos.forEach(tamanho => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${tamanho.id}</td>
+                    <td>
+                        <strong>${tamanho.nome}</strong>
+                        ${!tamanho.ativo ? '<span class="badge bg-secondary ms-2">Inativo</span>' : ''}
+                    </td>
+                    <td>R$ ${tamanho.precoBase.toFixed(2)}</td>
+                    <td>${tamanho.multiplicador}x</td>
+                    <td>${tamanho.descricao || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editarTamanho(${tamanho.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="confirmarExclusao(${tamanho.id})" title="Excluir">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function abrirModalTamanho(id = null) {
+            const modal = document.getElementById('tamanhoModal');
+            const modalTitle = document.getElementById('tamanhoModalLabel');
+            const form = document.getElementById('tamanhoForm');
+            
+            // Limpar formulário
+            form.reset();
+            document.getElementById('tamanhoId').value = '';
+            document.getElementById('ativoTamanho').checked = true;
+            
+            if (id) {
+                // Modo edição
+                const tamanho = tamanhos.find(t => t.id === id);
+                if (tamanho) {
+                    modalTitle.textContent = 'Editar Tamanho';
+                    document.getElementById('tamanhoId').value = tamanho.id;
+                    document.getElementById('nomeTamanho').value = tamanho.nome;
+                    document.getElementById('precoBase').value = tamanho.precoBase;
+                    document.getElementById('multiplicador').value = tamanho.multiplicador;
+                    document.getElementById('descricaoTamanho').value = tamanho.descricao || '';
+                    document.getElementById('ativoTamanho').checked = tamanho.ativo;
+                }
+            } else {
+                // Modo criação
+                modalTitle.textContent = 'Adicionar Tamanho';
+            }
+        }
+
+        function editarTamanho(id) {
+            abrirModalTamanho(id);
+            const modal = new bootstrap.Modal(document.getElementById('tamanhoModal'));
+            modal.show();
+        }
+
+        function salvarTamanho() {
+            const form = document.getElementById('tamanhoForm');
+            
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const id = document.getElementById('tamanhoId').value;
+            const nome = document.getElementById('nomeTamanho').value.trim();
+            const precoBase = parseFloat(document.getElementById('precoBase').value);
+            const multiplicador = parseFloat(document.getElementById('multiplicador').value);
+            const descricao = document.getElementById('descricaoTamanho').value.trim();
+            const ativo = document.getElementById('ativoTamanho').checked;
+
+            // Validações adicionais
+            if (nome.length < 2) {
+                alert('O nome deve ter pelo menos 2 caracteres.');
+                return;
+            }
+
+            if (precoBase <= 0) {
+                alert('O preço base deve ser maior que zero.');
+                return;
+            }
+
+            if (multiplicador <= 0) {
+                alert('O multiplicador deve ser maior que zero.');
+                return;
+            }
+
+            // Verificar se já existe um tamanho com o mesmo nome (exceto o atual)
+            const nomeExistente = tamanhos.find(t => 
+                t.nome.toLowerCase() === nome.toLowerCase() && 
+                t.id !== parseInt(id)
+            );
+
+            if (nomeExistente) {
+                alert('Já existe um tamanho com este nome.');
+                return;
+            }
+
+            const tamanhoData = {
+                nome,
+                precoBase,
+                multiplicador,
+                descricao,
+                ativo
+            };
+
+            if (id) {
+                // Editar tamanho existente
+                const index = tamanhos.findIndex(t => t.id === parseInt(id));
+                if (index !== -1) {
+                    tamanhos[index] = { ...tamanhos[index], ...tamanhoData };
+                }
+            } else {
+                // Criar novo tamanho
+                tamanhos.push({
+                    id: proximoId++,
+                    ...tamanhoData
+                });
+            }
+
+            // Fechar modal e recarregar tabela
+            const modal = bootstrap.Modal.getInstance(document.getElementById('tamanhoModal'));
+            modal.hide();
+            carregarTamanhos();
+
+            // Mostrar mensagem de sucesso
+            alert(id ? 'Tamanho atualizado com sucesso!' : 'Tamanho adicionado com sucesso!');
+        }
+
+        function confirmarExclusao(id) {
+            tamanhoParaExcluir = id;
+            const modal = new bootstrap.Modal(document.getElementById('confirmarExclusaoModal'));
+            modal.show();
+        }
+
+        function excluirTamanho() {
+            if (tamanhoParaExcluir) {
+                const index = tamanhos.findIndex(t => t.id === tamanhoParaExcluir);
+                if (index !== -1) {
+                    tamanhos.splice(index, 1);
+                    carregarTamanhos();
+                    alert('Tamanho excluído com sucesso!');
+                }
+                tamanhoParaExcluir = null;
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarTamanhos();
+            
+            // Configurar botão de confirmação de exclusão
+            document.getElementById('confirmarExclusaoBtn').addEventListener('click', function() {
+                excluirTamanho();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmarExclusaoModal'));
+                modal.hide();
+            });
+        });
+    </script>
+</body>
+</html>

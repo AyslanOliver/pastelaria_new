@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sabor Express - Configurações</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/sb-admin-2.css">
+</head>
+
+<body>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Sabor Express</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gestão
+            </div>
+
+            <!-- Nav Item - Novo Pedido -->
+            <li class="nav-item">
+                <a class="nav-link" href="novo-pedido.html">
+                    <i class="fas fa-fw fa-shopping-cart"></i>
+                    <span>Novo Pedido</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Produtos -->
+            <li class="nav-item">
+                <a class="nav-link" href="produtos.html">
+                    <i class="fas fa-fw fa-hamburger"></i>
+                    <span>Produtos</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Sabores -->
+            <li class="nav-item">
+                <a class="nav-link" href="sabores.html">
+                    <i class="fas fa-fw fa-pizza-slice"></i>
+                    <span>Sabores</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Tamanhos -->
+            <li class="nav-item">
+                <a class="nav-link" href="tamanhos.html">
+                    <i class="fas fa-fw fa-expand-arrows-alt"></i>
+                    <span>Tamanhos</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Sistema
+            </div>
+
+            <!-- Nav Item - Configurações -->
+            <li class="nav-item active">
+                <a class="nav-link" href="configuracoes.html">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Brand -->
+                    <div class="topbar-brand">
+                        <i class="fas fa-cog text-primary"></i> Configurações do Sistema
+                    </div>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Administrador</span>
+                                <i class="fas fa-user-circle fa-fw"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Painel de Configurações</h1>
+                        <button type="button" class="btn btn-success" onclick="salvarTodasConfiguracoes()">
+                            <i class="fas fa-save"></i> Salvar Todas as Configurações
+                        </button>
+                    </div>
+
+                    <div class="row">
+                        <!-- Configurações da Impressora -->
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-print"></i> Configurações da Impressora
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="impressoraForm">
+                                        <div class="mb-3">
+                                            <label for="bluetoothAddress" class="form-label">Endereço MAC da Impressora</label>
+                                            <input type="text" class="form-control" id="bluetoothAddress" placeholder="00:00:00:00:00:00" pattern="^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$">
+                                            <div class="form-text">Formato: XX:XX:XX:XX:XX:XX</div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="nomeImpressora" class="form-label">Nome da Impressora</label>
+                                            <input type="text" class="form-control" id="nomeImpressora" placeholder="Impressora Térmica">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="larguraPapel" class="form-label">Largura do Papel (mm)</label>
+                                            <select class="form-select" id="larguraPapel">
+                                                <option value="58">58mm</option>
+                                                <option value="80" selected>80mm</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="cortarPapel" checked>
+                                                <label class="form-check-label" for="cortarPapel">
+                                                    Cortar papel automaticamente
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="d-grid gap-2">
+                                            <button type="button" class="btn btn-outline-primary" onclick="buscarImpressoras()">
+                                                <i class="fas fa-bluetooth"></i> Buscar Impressoras
+                                            </button>
+                                            <button type="button" class="btn btn-outline-success" onclick="testarImpressora()">
+                                                <i class="fas fa-print"></i> Testar Impressão
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações de Entrega -->
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-truck"></i> Configurações de Entrega
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="entregaForm">
+                                        <div class="mb-3">
+                                            <label for="taxaEntrega" class="form-label">Taxa de Entrega Padrão</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">R$</span>
+                                                <input type="number" class="form-control" id="taxaEntrega" step="0.01" min="0" value="5.00">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tempoEntrega" class="form-label">Tempo Médio de Entrega (minutos)</label>
+                                            <input type="number" class="form-control" id="tempoEntrega" min="15" max="120" value="45">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="raioEntrega" class="form-label">Raio de Entrega (km)</label>
+                                            <input type="number" class="form-control" id="raioEntrega" step="0.1" min="1" max="50" value="10">
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="entregaGratis" checked>
+                                                <label class="form-check-label" for="entregaGratis">
+                                                    Entrega grátis acima de R$ 50,00
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3" id="valorEntregaGratis" style="display: block;">
+                                            <label for="valorMinimoEntregaGratis" class="form-label">Valor Mínimo para Entrega Grátis</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">R$</span>
+                                                <input type="number" class="form-control" id="valorMinimoEntregaGratis" step="0.01" min="0" value="50.00">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Configurações do Sistema -->
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-cogs"></i> Configurações do Sistema
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="sistemaForm">
+                                        <div class="mb-3">
+                                            <label for="nomeEmpresa" class="form-label">Nome da Empresa</label>
+                                            <input type="text" class="form-control" id="nomeEmpresa" value="Sabor Express" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="telefoneEmpresa" class="form-label">Telefone</label>
+                                            <input type="tel" class="form-control" id="telefoneEmpresa" placeholder="(11) 99999-9999">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="enderecoEmpresa" class="form-label">Endereço</label>
+                                            <textarea class="form-control" id="enderecoEmpresa" rows="3" placeholder="Rua, número, bairro, cidade"></textarea>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cnpjEmpresa" class="form-label">CNPJ</label>
+                                            <input type="text" class="form-control" id="cnpjEmpresa" placeholder="00.000.000/0000-00">
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="modoDebug">
+                                                <label class="form-check-label" for="modoDebug">
+                                                    Modo Debug (logs detalhados)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configurações de Backup -->
+                        <div class="col-lg-6">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-database"></i> Backup e Dados
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Backup dos Dados</label>
+                                        <div class="d-grid gap-2">
+                                            <button type="button" class="btn btn-outline-info" onclick="exportarDados()">
+                                                <i class="fas fa-download"></i> Exportar Dados
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning" onclick="importarDados()">
+                                                <i class="fas fa-upload"></i> Importar Dados
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="mb-3">
+                                        <label class="form-label">Limpeza de Dados</label>
+                                        <div class="d-grid gap-2">
+                                            <button type="button" class="btn btn-outline-danger" onclick="limparPedidosAntigos()">
+                                                <i class="fas fa-trash"></i> Limpar Pedidos Antigos
+                                            </button>
+                                            <button type="button" class="btn btn-danger" onclick="resetarSistema()">
+                                                <i class="fas fa-exclamation-triangle"></i> Resetar Sistema
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="mb-3">
+                                        <label class="form-label">Informações do Sistema</label>
+                                        <div class="small text-muted">
+                                            <p class="mb-1"><strong>Versão:</strong> 1.0.0</p>
+                                            <p class="mb-1"><strong>Última atualização:</strong> <span id="ultimaAtualizacao">-</span></p>
+                                            <p class="mb-0"><strong>Total de pedidos:</strong> <span id="totalPedidos">0</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Sabor Express 2024</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+        </div>
+        <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Modal Confirmação Reset -->
+    <div class="modal fade" id="confirmarResetModal" tabindex="-1" aria-labelledby="confirmarResetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmarResetModalLabel">Confirmar Reset do Sistema</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>ATENÇÃO!</strong> Esta ação irá apagar TODOS os dados do sistema, incluindo:
+                    </div>
+                    <ul class="text-danger">
+                        <li>Todos os pedidos</li>
+                        <li>Todos os produtos e sabores</li>
+                        <li>Todas as configurações personalizadas</li>
+                        <li>Histórico de vendas</li>
+                    </ul>
+                    <p class="text-danger"><strong>Esta ação NÃO pode ser desfeita!</strong></p>
+                    <p>Digite <strong>"RESETAR"</strong> para confirmar:</p>
+                    <input type="text" class="form-control" id="confirmarResetInput" placeholder="Digite RESETAR">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmarResetBtn" disabled>Resetar Sistema</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom scripts for all pages-->
+    <script>
+        // Toggle the side navigation
+        (function($) {
+            "use strict";
+
+            $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
+                $("body").toggleClass("sidebar-toggled");
+                $(".sidebar").toggleClass("toggled");
+                if ($(".sidebar").hasClass("toggled")) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+            $(window).resize(function() {
+                if ($(window).width() < 768) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+                
+                if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
+                    $("body").addClass("sidebar-toggled");
+                    $(".sidebar").addClass("toggled");
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+        })(jQuery);
+
+        // Configurações do sistema
+        let configuracoes = {
+            impressora: {
+                bluetoothAddress: '',
+                nomeImpressora: 'Impressora Térmica',
+                larguraPapel: 80,
+                cortarPapel: true
+            },
+            entrega: {
+                taxaEntrega: 5.00,
+                tempoEntrega: 45,
+                raioEntrega: 10,
+                entregaGratis: true,
+                valorMinimoEntregaGratis: 50.00
+            },
+            sistema: {
+                nomeEmpresa: 'Sabor Express',
+                telefoneEmpresa: '',
+                enderecoEmpresa: '',
+                cnpjEmpresa: '',
+                modoDebug: false
+            }
+        };
+
+        function carregarConfiguracoes() {
+            // Carregar configurações da impressora
+            document.getElementById('bluetoothAddress').value = configuracoes.impressora.bluetoothAddress;
+            document.getElementById('nomeImpressora').value = configuracoes.impressora.nomeImpressora;
+            document.getElementById('larguraPapel').value = configuracoes.impressora.larguraPapel;
+            document.getElementById('cortarPapel').checked = configuracoes.impressora.cortarPapel;
+
+            // Carregar configurações de entrega
+            document.getElementById('taxaEntrega').value = configuracoes.entrega.taxaEntrega;
+            document.getElementById('tempoEntrega').value = configuracoes.entrega.tempoEntrega;
+            document.getElementById('raioEntrega').value = configuracoes.entrega.raioEntrega;
+            document.getElementById('entregaGratis').checked = configuracoes.entrega.entregaGratis;
+            document.getElementById('valorMinimoEntregaGratis').value = configuracoes.entrega.valorMinimoEntregaGratis;
+
+            // Carregar configurações do sistema
+            document.getElementById('nomeEmpresa').value = configuracoes.sistema.nomeEmpresa;
+            document.getElementById('telefoneEmpresa').value = configuracoes.sistema.telefoneEmpresa;
+            document.getElementById('enderecoEmpresa').value = configuracoes.sistema.enderecoEmpresa;
+            document.getElementById('cnpjEmpresa').value = configuracoes.sistema.cnpjEmpresa;
+            document.getElementById('modoDebug').checked = configuracoes.sistema.modoDebug;
+
+            // Atualizar informações do sistema
+            document.getElementById('ultimaAtualizacao').textContent = new Date().toLocaleString('pt-BR');
+            document.getElementById('totalPedidos').textContent = '0'; // Seria carregado do banco de dados
+
+            // Controlar visibilidade do campo de entrega grátis
+            toggleEntregaGratis();
+        }
+
+        function salvarTodasConfiguracoes() {
+            // Salvar configurações da impressora
+            configuracoes.impressora.bluetoothAddress = document.getElementById('bluetoothAddress').value;
+            configuracoes.impressora.nomeImpressora = document.getElementById('nomeImpressora').value;
+            configuracoes.impressora.larguraPapel = parseInt(document.getElementById('larguraPapel').value);
+            configuracoes.impressora.cortarPapel = document.getElementById('cortarPapel').checked;
+
+            // Salvar configurações de entrega
+            configuracoes.entrega.taxaEntrega = parseFloat(document.getElementById('taxaEntrega').value);
+            configuracoes.entrega.tempoEntrega = parseInt(document.getElementById('tempoEntrega').value);
+            configuracoes.entrega.raioEntrega = parseFloat(document.getElementById('raioEntrega').value);
+            configuracoes.entrega.entregaGratis = document.getElementById('entregaGratis').checked;
+            configuracoes.entrega.valorMinimoEntregaGratis = parseFloat(document.getElementById('valorMinimoEntregaGratis').value);
+
+            // Salvar configurações do sistema
+            configuracoes.sistema.nomeEmpresa = document.getElementById('nomeEmpresa').value;
+            configuracoes.sistema.telefoneEmpresa = document.getElementById('telefoneEmpresa').value;
+            configuracoes.sistema.enderecoEmpresa = document.getElementById('enderecoEmpresa').value;
+            configuracoes.sistema.cnpjEmpresa = document.getElementById('cnpjEmpresa').value;
+            configuracoes.sistema.modoDebug = document.getElementById('modoDebug').checked;
+
+            // Simular salvamento
+            alert('Configurações salvas com sucesso!');
+            console.log('Configurações salvas:', configuracoes);
+        }
+
+        function buscarImpressoras() {
+            alert('Funcionalidade de busca de impressoras Bluetooth será implementada na versão mobile.');
+        }
+
+        function testarImpressora() {
+            const bluetoothAddress = document.getElementById('bluetoothAddress').value;
+            if (!bluetoothAddress) {
+                alert('Por favor, configure o endereço MAC da impressora primeiro.');
+                return;
+            }
+            alert('Teste de impressão enviado! Verifique se a impressora imprimiu corretamente.');
+        }
+
+        function toggleEntregaGratis() {
+            const entregaGratis = document.getElementById('entregaGratis').checked;
+            const valorEntregaGratis = document.getElementById('valorEntregaGratis');
+            valorEntregaGratis.style.display = entregaGratis ? 'block' : 'none';
+        }
+
+        function exportarDados() {
+            const dados = {
+                configuracoes: configuracoes,
+                dataExportacao: new Date().toISOString(),
+                versao: '1.0.0'
+            };
+            
+            const dataStr = JSON.stringify(dados, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `sabor-express-backup-${new Date().toISOString().split('T')[0]}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            alert('Dados exportados com sucesso!');
+        }
+
+        function importarDados() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const dados = JSON.parse(e.target.result);
+                            if (dados.configuracoes) {
+                                configuracoes = dados.configuracoes;
+                                carregarConfiguracoes();
+                                alert('Dados importados com sucesso!');
+                            } else {
+                                alert('Arquivo de backup inválido.');
+                            }
+                        } catch (error) {
+                            alert('Erro ao importar dados: ' + error.message);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function limparPedidosAntigos() {
+            if (confirm('Tem certeza que deseja limpar todos os pedidos com mais de 30 dias?')) {
+                alert('Pedidos antigos removidos com sucesso!');
+            }
+        }
+
+        function resetarSistema() {
+            const modal = new bootstrap.Modal(document.getElementById('confirmarResetModal'));
+            modal.show();
+        }
+
+        function confirmarReset() {
+            // Reset todas as configurações para padrão
+            configuracoes = {
+                impressora: {
+                    bluetoothAddress: '',
+                    nomeImpressora: 'Impressora Térmica',
+                    larguraPapel: 80,
+                    cortarPapel: true
+                },
+                entrega: {
+                    taxaEntrega: 5.00,
+                    tempoEntrega: 45,
+                    raioEntrega: 10,
+                    entregaGratis: true,
+                    valorMinimoEntregaGratis: 50.00
+                },
+                sistema: {
+                    nomeEmpresa: 'Sabor Express',
+                    telefoneEmpresa: '',
+                    enderecoEmpresa: '',
+                    cnpjEmpresa: '',
+                    modoDebug: false
+                }
+            };
+            
+            carregarConfiguracoes();
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmarResetModal'));
+            modal.hide();
+            
+            alert('Sistema resetado com sucesso! Todas as configurações foram restauradas para o padrão.');
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarConfiguracoes();
+            
+            // Toggle entrega grátis
+            document.getElementById('entregaGratis').addEventListener('change', toggleEntregaGratis);
+            
+            // Configurar modal de reset
+            const confirmarResetInput = document.getElementById('confirmarResetInput');
+            const confirmarResetBtn = document.getElementById('confirmarResetBtn');
+            
+            confirmarResetInput.addEventListener('input', function() {
+                confirmarResetBtn.disabled = this.value !== 'RESETAR';
+            });
+            
+            confirmarResetBtn.addEventListener('click', confirmarReset);
+        });
+    </script>
+</body>
+</html>

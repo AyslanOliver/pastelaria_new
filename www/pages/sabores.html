@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sabor Express - Sabores</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/sb-admin-2.css">
+</head>
+
+<body>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Sabor Express</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gestão
+            </div>
+
+            <!-- Nav Item - Novo Pedido -->
+            <li class="nav-item">
+                <a class="nav-link" href="novo-pedido.html">
+                    <i class="fas fa-fw fa-shopping-cart"></i>
+                    <span>Novo Pedido</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Produtos -->
+            <li class="nav-item">
+                <a class="nav-link" href="produtos.html">
+                    <i class="fas fa-fw fa-hamburger"></i>
+                    <span>Produtos</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Sabores -->
+            <li class="nav-item active">
+                <a class="nav-link" href="sabores.html">
+                    <i class="fas fa-fw fa-pizza-slice"></i>
+                    <span>Sabores</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Tamanhos -->
+            <li class="nav-item">
+                <a class="nav-link" href="tamanhos.html">
+                    <i class="fas fa-fw fa-expand-arrows-alt"></i>
+                    <span>Tamanhos</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Sistema
+            </div>
+
+            <!-- Nav Item - Configurações -->
+            <li class="nav-item">
+                <a class="nav-link" href="configuracoes.html">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Brand -->
+                    <div class="topbar-brand">
+                        <i class="fas fa-pizza-slice text-primary"></i> Gerenciar Sabores
+                    </div>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Administrador</span>
+                                <i class="fas fa-user-circle fa-fw"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Sabores de Pizza</h1>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSaborModal">
+                            <i class="fas fa-plus"></i> Adicionar Sabor
+                        </button>
+                    </div>
+
+                    <!-- Sabores Cards -->
+                    <div class="row" id="saboresContainer">
+                        <!-- Cards serão carregados via JavaScript -->
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Sabor Express 2024</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+        </div>
+        <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Add Sabor Modal -->
+    <div class="modal fade" id="addSaborModal" tabindex="-1" aria-labelledby="addSaborModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSaborModalLabel">Adicionar Sabor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="saborForm">
+                        <div class="mb-3">
+                            <label for="saborNome" class="form-label">Nome do Sabor</label>
+                            <input type="text" class="form-control" id="saborNome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="saborDescricao" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="saborDescricao" rows="3" placeholder="Ingredientes e descrição do sabor"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="saborPrecoAdicional" class="form-label">Preço Adicional (R$)</label>
+                            <input type="number" class="form-control" id="saborPrecoAdicional" step="0.01" value="0.00">
+                            <div class="form-text">Deixe 0.00 se não há custo adicional</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="saborCategoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="saborCategoria" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="Tradicional">Tradicional</option>
+                                <option value="Especial">Especial</option>
+                                <option value="Premium">Premium</option>
+                                <option value="Doce">Doce</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="saborDisponivel" checked>
+                                <label class="form-check-label" for="saborDisponivel">
+                                    Sabor Disponível
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="salvarSabor()">Salvar Sabor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Sabor Modal -->
+    <div class="modal fade" id="editSaborModal" tabindex="-1" aria-labelledby="editSaborModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editSaborModalLabel">Editar Sabor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editSaborForm">
+                        <input type="hidden" id="editSaborId">
+                        <div class="mb-3">
+                            <label for="editSaborNome" class="form-label">Nome do Sabor</label>
+                            <input type="text" class="form-control" id="editSaborNome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSaborDescricao" class="form-label">Descrição</label>
+                            <textarea class="form-control" id="editSaborDescricao" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSaborPrecoAdicional" class="form-label">Preço Adicional (R$)</label>
+                            <input type="number" class="form-control" id="editSaborPrecoAdicional" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editSaborCategoria" class="form-label">Categoria</label>
+                            <select class="form-select" id="editSaborCategoria" required>
+                                <option value="">Selecione uma categoria</option>
+                                <option value="Tradicional">Tradicional</option>
+                                <option value="Especial">Especial</option>
+                                <option value="Premium">Premium</option>
+                                <option value="Doce">Doce</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editSaborDisponivel">
+                                <label class="form-check-label" for="editSaborDisponivel">
+                                    Sabor Disponível
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="atualizarSabor()">Atualizar Sabor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom scripts for all pages-->
+    <script>
+        // Toggle the side navigation
+        (function($) {
+            "use strict";
+
+            $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
+                $("body").toggleClass("sidebar-toggled");
+                $(".sidebar").toggleClass("toggled");
+                if ($(".sidebar").hasClass("toggled")) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+            $(window).resize(function() {
+                if ($(window).width() < 768) {
+                    $('.sidebar .collapse').collapse('hide');
+                };
+                
+                if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
+                    $("body").addClass("sidebar-toggled");
+                    $(".sidebar").addClass("toggled");
+                    $('.sidebar .collapse').collapse('hide');
+                };
+            });
+
+        })(jQuery);
+
+        // Sabores management
+        let sabores = [
+            { id: 1, nome: "Margherita", descricao: "Molho de tomate, mussarela, manjericão fresco", precoAdicional: 0.00, categoria: "Tradicional", disponivel: true },
+            { id: 2, nome: "Pepperoni", descricao: "Molho de tomate, mussarela, pepperoni", precoAdicional: 3.00, categoria: "Tradicional", disponivel: true },
+            { id: 3, nome: "Quatro Queijos", descricao: "Mussarela, gorgonzola, parmesão, provolone", precoAdicional: 5.00, categoria: "Especial", disponivel: true },
+            { id: 4, nome: "Portuguesa", descricao: "Presunto, ovos, cebola, azeitona, ervilha", precoAdicional: 4.00, categoria: "Tradicional", disponivel: true },
+            { id: 5, nome: "Frango com Catupiry", descricao: "Frango desfiado, catupiry, milho", precoAdicional: 4.50, categoria: "Especial", disponivel: true },
+            { id: 6, nome: "Chocolate", descricao: "Chocolate ao leite, granulado", precoAdicional: 6.00, categoria: "Doce", disponivel: false }
+        ];
+
+        function getCategoriaColor(categoria) {
+            const colors = {
+                'Tradicional': 'success',
+                'Especial': 'warning',
+                'Premium': 'danger',
+                'Doce': 'info'
+            };
+            return colors[categoria] || 'secondary';
+        }
+
+        function carregarSabores() {
+            const container = document.getElementById('saboresContainer');
+            container.innerHTML = '';
+            
+            sabores.forEach(sabor => {
+                const card = `
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-${getCategoriaColor(sabor.categoria)} shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-${getCategoriaColor(sabor.categoria)} text-uppercase mb-1">
+                                            ${sabor.categoria}
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">${sabor.nome}</div>
+                                        <div class="text-xs text-gray-600 mt-1">${sabor.descricao}</div>
+                                        ${sabor.precoAdicional > 0 ? `<div class="text-xs text-success mt-2">+R$ ${sabor.precoAdicional.toFixed(2)}</div>` : ''}
+                                        <div class="mt-2">
+                                            <span class="badge badge-${sabor.disponivel ? 'success' : 'danger'}">
+                                                ${sabor.disponivel ? 'Disponível' : 'Indisponível'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-pizza-slice fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-sm btn-primary me-1" onclick="editarSabor(${sabor.id})">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="excluirSabor(${sabor.id})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        }
+
+        function salvarSabor() {
+            const nome = document.getElementById('saborNome').value;
+            const descricao = document.getElementById('saborDescricao').value;
+            const precoAdicional = parseFloat(document.getElementById('saborPrecoAdicional').value) || 0;
+            const categoria = document.getElementById('saborCategoria').value;
+            const disponivel = document.getElementById('saborDisponivel').checked;
+
+            if (!nome || !categoria) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            const novoSabor = {
+                id: sabores.length + 1,
+                nome,
+                descricao,
+                precoAdicional,
+                categoria,
+                disponivel
+            };
+
+            sabores.push(novoSabor);
+            carregarSabores();
+            
+            // Limpar formulário
+            document.getElementById('saborForm').reset();
+            document.getElementById('saborDisponivel').checked = true;
+            document.getElementById('saborPrecoAdicional').value = '0.00';
+            
+            // Fechar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addSaborModal'));
+            modal.hide();
+        }
+
+        function editarSabor(id) {
+            const sabor = sabores.find(s => s.id === id);
+            if (!sabor) return;
+
+            document.getElementById('editSaborId').value = sabor.id;
+            document.getElementById('editSaborNome').value = sabor.nome;
+            document.getElementById('editSaborDescricao').value = sabor.descricao;
+            document.getElementById('editSaborPrecoAdicional').value = sabor.precoAdicional;
+            document.getElementById('editSaborCategoria').value = sabor.categoria;
+            document.getElementById('editSaborDisponivel').checked = sabor.disponivel;
+
+            const modal = new bootstrap.Modal(document.getElementById('editSaborModal'));
+            modal.show();
+        }
+
+        function atualizarSabor() {
+            const id = parseInt(document.getElementById('editSaborId').value);
+            const nome = document.getElementById('editSaborNome').value;
+            const descricao = document.getElementById('editSaborDescricao').value;
+            const precoAdicional = parseFloat(document.getElementById('editSaborPrecoAdicional').value) || 0;
+            const categoria = document.getElementById('editSaborCategoria').value;
+            const disponivel = document.getElementById('editSaborDisponivel').checked;
+
+            if (!nome || !categoria) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            const saborIndex = sabores.findIndex(s => s.id === id);
+            if (saborIndex !== -1) {
+                sabores[saborIndex] = { id, nome, descricao, precoAdicional, categoria, disponivel };
+                carregarSabores();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editSaborModal'));
+                modal.hide();
+            }
+        }
+
+        function excluirSabor(id) {
+            if (confirm('Tem certeza que deseja excluir este sabor?')) {
+                sabores = sabores.filter(s => s.id !== id);
+                carregarSabores();
+            }
+        }
+
+        // Carregar sabores ao inicializar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarSabores();
+        });
+    </script>
+</body>
+</html>
