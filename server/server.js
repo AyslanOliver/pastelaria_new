@@ -19,8 +19,10 @@ console.log('🚀 Iniciando servidor...');
 console.log('📍 Ambiente:', process.env.NODE_ENV || 'development');
 console.log('🔌 Porta:', PORT);
 
-// Conectar ao MongoDB
-connectDB();
+// Conectar ao MongoDB apenas se não estiver em ambiente serverless
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  connectDB();
+}
 
 // Middlewares
 app.use(cors({
@@ -75,6 +77,23 @@ app.use((req, res, next) => {
 });
 
 // Rotas da API
+// Rota raiz da API
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'API da Pastelaria funcionando!',
+    version: '2.0.0',
+    endpoints: {
+      produtos: '/api/produtos',
+      sabores: '/api/sabores',
+      tamanhos: '/api/tamanhos',
+      pedidos: '/api/pedidos',
+      test: '/api/test',
+      status: '/api/status'
+    }
+  });
+});
+
+// Usar as rotas
 app.use('/api/produtos', produtosRoutes);
 app.use('/api/sabores', saboresRoutes);
 app.use('/api/tamanhos', tamanhosRoutes);

@@ -25,5 +25,10 @@ function onDeviceReady() {
     // Cordova is now initialized. Have fun!
 
     console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
-    document.getElementById('deviceready').classList.add('ready');
+    
+    // Verificar se o elemento existe antes de tentar acessar classList
+    const deviceReadyElement = document.getElementById('deviceready');
+    if (deviceReadyElement) {
+        deviceReadyElement.classList.add('ready');
+    }
 }

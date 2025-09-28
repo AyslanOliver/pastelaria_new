@@ -6,8 +6,8 @@ window.API_CONFIG = {
     BASE_URL_NETWORK: 'http://192.168.18.104:3000/api',
     // Para emulador Android
     BASE_URL_EMULATOR: 'http://10.0.2.2:3000/api',
-    // Para produção no Render (substitua pela URL real após deploy)
-    BASE_URL_PRODUCTION: 'https://pastelaria-api.onrender.com/api',
+    // Para produção no Vercel
+    BASE_URL_PRODUCTION: 'https://server-i0sivfvj2-ayslanoons-projects.vercel.app/api',
     VERSION: '2.0.0',
     TIMESTAMP: Date.now()
 };
@@ -83,15 +83,17 @@ function getApiBaseUrl() {
     );
     
     if (isMobile) {
-        console.log('📱 Detectado dispositivo móvel - tentando produção primeiro');
+        console.log('📱 Detectado dispositivo móvel - usando produção');
         console.log('🌐 URL da API (produção):', window.API_CONFIG.BASE_URL_PRODUCTION);
         const url = window.API_CONFIG.BASE_URL_PRODUCTION;
         saveApiConfig(url); // Salva para próximas vezes
         return url;
     } else {
-        console.log('💻 Detectado ambiente browser - usando localhost');
-        console.log('🌐 URL da API:', window.API_CONFIG.BASE_URL_LOCAL);
-        return window.API_CONFIG.BASE_URL_LOCAL;
+        console.log('💻 Detectado ambiente browser - usando produção (Vercel)');
+        console.log('🌐 URL da API (produção):', window.API_CONFIG.BASE_URL_PRODUCTION);
+        const url = window.API_CONFIG.BASE_URL_PRODUCTION;
+        saveApiConfig(url); // Salva para próximas vezes
+        return url;
     }
 }
 

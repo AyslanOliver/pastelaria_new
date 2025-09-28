@@ -1,9 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const Produto = require('../models/Produto');
+const connectDB = require('../config/database');
+
+// Middleware para garantir conexão com MongoDB em ambiente serverless
+const ensureConnection = async (req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && process.env.VERCEL) {
+    await connectDB();
+  }
+  next();
+};
 
 // GET /api/produtos - Listar todos os produtos
-router.get('/', async (req, res) => {
+router.get('/', ensureConnection, async (req, res) => {
   try {
     const produtos = await Produto.find({ ativo: true }).sort({ nome: 1 });
     res.json(produtos);
@@ -13,7 +22,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/produtos/:id - Buscar produto por ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', ensureConnection, async (req, res) => {
   try {
     const produto = await Produto.findById(req.params.id);
     if (!produto) {
@@ -26,7 +35,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/produtos - Criar novo produto
-router.post('/', async (req, res) => {
+router.post('/', ensureConnection, async (req, res) => {
   try {
     const produto = new Produto(req.body);
     const novoProduto = await produto.save();
@@ -37,7 +46,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT /api/produtos/:id - Atualizar produto
-router.put('/:id', async (req, res) => {
+router.put('/:id', ensureConnection, async (req, res) => {
   try {
     const produto = await Produto.findByIdAndUpdate(
       req.params.id,
@@ -54,7 +63,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/produtos/:id - Deletar produto (soft delete)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', ensureConnection, async (req, res) => {
   try {
     const produto = await Produto.findByIdAndUpdate(
       req.params.id,
@@ -71,7 +80,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // GET /api/produtos/categoria/:categoria - Buscar produtos por categoria
-router.get('/categoria/:categoria', async (req, res) => {
+router.get('/categoria/:categoria', ensureConnection, async (req, res) => {
   try {
     const produtos = await Produto.find({ 
       categoria: req.params.categoria,
