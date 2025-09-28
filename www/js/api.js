@@ -1,43 +1,36 @@
-// Configuração da API
+// Configuração da API - usando arquivo de configuração separado
 const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : 'http://localhost:3000/api';
 
-console.log('🔄 API.js carregado com URL:', API_BASE_URL);
+// Log para debug
+console.log('🔄 API configurada para:', API_BASE_URL, 'Config:', window.API_CONFIG);
 
+// Classe para gerenciar chamadas da API
 class PastelariaAPI {
     constructor() {
         this.baseURL = API_BASE_URL;
-        console.log('🔄 PastelariaAPI inicializada com URL:', this.baseURL);
     }
 
+    // Método genérico para fazer requisições
     async request(endpoint, options = {}) {
-        const url = `${this.baseURL}${endpoint}`;
-        console.log('🌐 Fazendo requisição para:', url);
-        console.log('🔧 Opções da requisição:', options);
-        
-        const defaultOptions = {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        };
-
-        const finalOptions = { ...defaultOptions, ...options };
-        console.log('🔧 Opções finais:', finalOptions);
-
         try {
-            const response = await fetch(url, finalOptions);
-            console.log('📡 Resposta recebida:', response.status, response.statusText);
+            const url = `${this.baseURL}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            };
+
+            const response = await fetch(url, config);
             
             if (!response.ok) {
-                console.error('❌ Erro na resposta:', response.status, response.statusText);
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Erro na API: ${response.status} - ${response.statusText}`);
             }
 
-            const data = await response.json();
-            console.log('✅ Dados recebidos:', data);
-            return data;
+            return await response.json();
         } catch (error) {
-            console.error('❌ Erro na requisição:', error);
-            console.error('❌ URL que falhou:', url);
+            console.error('Erro na requisição:', error);
             throw error;
         }
     }

@@ -23,19 +23,6 @@
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
     
-    <!-- Permitir acesso à API local -->
-    <allow-navigation href="http://localhost:*" />
-    <allow-navigation href="http://192.168.*" />
-    <allow-navigation href="http://10.*" />
-    <allow-navigation href="http://172.*" />
-    
-    <!-- Configurações de segurança para desenvolvimento -->
-    <access origin="*" />
-    <access origin="http://localhost:*" subdomains="true" />
-    <access origin="http://192.168.*" subdomains="true" />
-    <access origin="http://10.*" subdomains="true" />
-    <access origin="http://172.*" subdomains="true" />
-    
     <!-- Configurações específicas do Android -->
     <platform name="android">
         <preference name="android-minSdkVersion" value="24" />

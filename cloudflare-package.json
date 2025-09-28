@@ -1,0 +1,83 @@
+{
+  "name": "pastelaria-cloudflare-api",
+  "version": "1.0.0",
+  "description": "API da Pastelaria otimizada para dispositivos móveis usando Cloudflare D1 e Workers",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env development",
+    "deploy:production": "wrangler deploy --env production",
+    "db:create": "wrangler d1 create pastelaria-db",
+    "db:migrate": "wrangler d1 execute pastelaria-db --file=./cloudflare/schema.sql",
+    "db:migrate:dev": "wrangler d1 execute pastelaria-db --env development --file=./cloudflare/schema.sql",
+    "db:seed": "wrangler d1 execute pastelaria-db --file=./cloudflare/seed.sql",
+    "db:seed:dev": "wrangler d1 execute pastelaria-db --env development --file=./cloudflare/seed.sql",
+    "db:backup": "wrangler d1 export pastelaria-db --output=backup.sql",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "build": "echo 'Build completed - Workers não precisa de build step'",
+    "logs": "wrangler tail",
+    "logs:production": "wrangler tail --env production"
+  },
+  "dependencies": {
+    "itty-router": "^4.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240000.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
+    "vitest": "^1.0.0",
+    "wrangler": "^3.0.0"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "d1",
+    "mobile",
+    "api",
+    "pastelaria",
+    "restaurant",
+    "offline-first"
+  ],
+  "author": "Pastelaria Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/pastelaria-cloudflare-api.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "es2022": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2022,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "warn",
+      "no-unused-vars": "error",
+      "prefer-const": "error"
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
+  }
+}

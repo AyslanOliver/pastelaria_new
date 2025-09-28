@@ -1,0 +1,29 @@
+name = "pastelaria-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "pastelaria-api"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "pastelaria-db"
+database_id = "33b5ffa3-8f9a-4e82-bb4b-c82e10c0ab7d"
+
+[env.development]
+name = "pastelaria-api-dev"
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "pastelaria-db-dev"
+database_id = "your-dev-database-id-here"
+
+# Configurações para otimização mobile
+[build]
+command = "echo 'Build completed - Workers não precisa de build step'"
+
+[vars]
+ENVIRONMENT = "production"
+API_VERSION = "v1"
+CACHE_TTL = "3600"
+MAX_REQUEST_SIZE = "10485760"
