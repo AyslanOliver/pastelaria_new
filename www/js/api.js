@@ -1,5 +1,8 @@
-// Configuração da API
-const API_BASE_URL = 'http://localhost:3000/api';
+// Configuração da API - usando arquivo de configuração separado
+const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : 'http://localhost:3000/api';
+
+// Log para debug
+console.log('🔄 API configurada para:', API_BASE_URL, 'Config:', window.API_CONFIG);
 
 // Classe para gerenciar chamadas da API
 class PastelariaAPI {

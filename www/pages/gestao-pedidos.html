@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Sabor Express - Gestão de Pedidos</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/sb-admin-2.css">
+    <!-- API Script -->
+    <script src="../js/api-config.js"></script>
+    <script src="../js/api.js"></script>
+    
+    <style>
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+        }
+        .order-card {
+            transition: all 0.3s ease;
+            border-left: 4px solid #dee2e6;
+        }
+        .order-card.pendente {
+            border-left-color: #007bff;
+        }
+        .order-card.preparando {
+            border-left-color: #ffc107;
+        }
+        .order-card.pronto {
+            border-left-color: #17a2b8;
+        }
+        .order-card.entregue {
+            border-left-color: #28a745;
+        }
+        .order-card.cancelado {
+            border-left-color: #dc3545;
+        }
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .btn-action {
+            margin: 0.2rem;
+        }
+        .order-items {
+            font-size: 0.9rem;
+        }
+        .print-area {
+            display: none;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar">
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-utensils"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Sabor Express</div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Gestão
+            </div>
+
+            <!-- Nav Item - Novo Pedido -->
+            <li class="nav-item">
+                <a class="nav-link" href="novo-pedido.html">
+                    <i class="fas fa-fw fa-shopping-cart"></i>
+                    <span>Novo Pedido</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Gestão de Pedidos -->
+            <li class="nav-item active">
+                <a class="nav-link" href="gestao-pedidos.html">
+                    <i class="fas fa-fw fa-clipboard-list"></i>
+                    <span>Gestão de Pedidos</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Produtos -->
+            <li class="nav-item">
+                <a class="nav-link" href="produtos.html">
+                    <i class="fas fa-fw fa-hamburger"></i>
+                    <span>Produtos</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Sabores -->
+            <li class="nav-item">
+                <a class="nav-link" href="sabores.html">
+                    <i class="fas fa-fw fa-pizza-slice"></i>
+                    <span>Sabores</span>
+                </a>
+            </li>
+
+            <!-- Nav Item - Tamanhos -->
+            <li class="nav-item">
+                <a class="nav-link" href="tamanhos.html">
+                    <i class="fas fa-fw fa-expand-arrows-alt"></i>
+                    <span>Tamanhos</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Sistema
+            </div>
+
+            <!-- Nav Item - Configurações -->
+            <li class="nav-item">
+                <a class="nav-link" href="configuracoes.html">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Configurações</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+            <!-- Main Content -->
+            <div id="content">
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <!-- Topbar Brand -->
+                    <div class="topbar-brand">
+                        <i class="fas fa-clipboard-list text-primary"></i> Gestão de Pedidos
+                    </div>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Administrador</span>
+                                <i class="fas fa-user-circle fa-fw"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800">Gestão de Pedidos</h1>
+                        <div>
+                            <button class="btn btn-primary btn-sm" onclick="carregarPedidos()">
+                                <i class="fas fa-sync-alt"></i> Atualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <select class="form-select" id="filtroStatus" onchange="filtrarPedidos()">
+                                <option value="">Todos os Status</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Preparando">Preparando</option>
+                                <option value="Pronto">Pronto</option>
+                                <option value="Entregue">Entregue</option>
+                                <option value="Cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" id="filtroData" onchange="filtrarPedidos()">
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="filtroCliente" placeholder="Buscar por cliente..." onkeyup="filtrarPedidos()">
+                        </div>
+                    </div>
+
+                    <!-- Loading -->
+                    <div id="loading" class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2">Carregando pedidos...</p>
+                    </div>
+
+                    <!-- Lista de Pedidos -->
+                    <div id="pedidosContainer" class="row" style="display: none;">
+                        <!-- Pedidos serão carregados aqui dinamicamente -->
+                    </div>
+
+                    <!-- Mensagem quando não há pedidos -->
+                    <div id="noPedidos" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum pedido encontrado</h5>
+                        <p class="text-muted">Não há pedidos que correspondam aos filtros selecionados.</p>
+                    </div>
+                </div>
+                <!-- /.container-fluid -->
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Sabor Express 2024</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+        </div>
+        <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Área de Impressão (oculta) -->
+    <div class="print-area" id="printArea">
+        <!-- Conteúdo da comanda será inserido aqui -->
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Ação</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage">Tem certeza que deseja realizar esta ação?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmButton">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal WhatsApp -->
+    <div class="modal fade" id="whatsappModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fab fa-whatsapp text-success"></i> Enviar Confirmação via WhatsApp
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Número do Cliente:</label>
+                        <input type="text" class="form-control" id="whatsappNumero" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mensagem:</label>
+                        <textarea class="form-control" id="whatsappMessage" rows="15" readonly></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-success" id="btnEnviarWhatsApp">
+                        <i class="fab fa-whatsapp"></i> Abrir WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom scripts -->
+    <script>
+        // Toggle the side navigation
+        (function($) {
+            "use strict";
+
+            $("#sidebarToggle, #sidebarToggleTop").on('click', function(e) {
+                $("body").toggleClass("sidebar-toggled");
+                $(".sidebar").toggleClass("toggled");
+                if ($(".sidebar").hasClass("toggled")) {
+                    $('.sidebar .collapse').collapse('hide');
+                }
+            });
+
+            $(window).resize(function() {
+                if ($(window).width() < 768) {
+                    $('.sidebar .collapse').collapse('hide');
+                }
+                
+                if ($(window).width() < 480 && !$(".sidebar").hasClass("toggled")) {
+                    $("body").addClass("sidebar-toggled");
+                    $(".sidebar").addClass("toggled");
+                    $('.sidebar .collapse').collapse('hide');
+                }
+            });
+
+        })(jQuery);
+
+        // Variáveis globais
+        let pastelariaAPI;
+        let todosPedidos = [];
+        let pedidosFiltrados = [];
+        let pedidoAtual = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            pastelariaAPI = new PastelariaAPI();
+            carregarPedidos();
+            
+            // Definir data de hoje como padrão
+            const hoje = new Date().toISOString().split('T')[0];
+            document.getElementById('filtroData').value = hoje;
+        });
+
+        // Carregar pedidos da API
+        async function carregarPedidos() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('pedidosContainer').style.display = 'none';
+                document.getElementById('noPedidos').style.display = 'none';
+
+                todosPedidos = await pastelariaAPI.getPedidos();
+                pedidosFiltrados = [...todosPedidos];
+                
+                filtrarPedidos();
+                
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('noPedidos').style.display = 'block';
+                document.querySelector('#noPedidos h5').textContent = 'Erro ao carregar pedidos';
+                document.querySelector('#noPedidos p').textContent = 'Ocorreu um erro ao buscar os pedidos. Tente novamente.';
+            }
+        }
+
+        // Filtrar pedidos
+        function filtrarPedidos() {
+            const filtroStatus = document.getElementById('filtroStatus').value;
+            const filtroData = document.getElementById('filtroData').value;
+            const filtroCliente = document.getElementById('filtroCliente').value.toLowerCase();
+
+            pedidosFiltrados = todosPedidos.filter(pedido => {
+                // Filtro por status
+                if (filtroStatus && pedido.status !== filtroStatus) {
+                    return false;
+                }
+
+                // Filtro por data
+                if (filtroData) {
+                    const dataPedido = new Date(pedido.dataPedido).toISOString().split('T')[0];
+                    if (dataPedido !== filtroData) {
+                        return false;
+                    }
+                }
+
+                // Filtro por cliente
+                if (filtroCliente) {
+                    const nomeCliente = (pedido.cliente.nome || pedido.cliente || '').toLowerCase();
+                    if (!nomeCliente.includes(filtroCliente)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            exibirPedidos();
+        }
+
+        // Exibir pedidos na interface
+        function exibirPedidos() {
+            const container = document.getElementById('pedidosContainer');
+            const loading = document.getElementById('loading');
+            const noPedidos = document.getElementById('noPedidos');
+
+            loading.style.display = 'none';
+
+            if (pedidosFiltrados.length === 0) {
+                container.style.display = 'none';
+                noPedidos.style.display = 'block';
+                return;
+            }
+
+            noPedidos.style.display = 'none';
+            container.style.display = 'flex';
+            container.innerHTML = '';
+
+            // Ordenar por data (mais recentes primeiro)
+            pedidosFiltrados.sort((a, b) => new Date(b.dataPedido) - new Date(a.dataPedido));
+
+            pedidosFiltrados.forEach(pedido => {
+                const card = criarCardPedido(pedido);
+                container.appendChild(card);
+            });
+        }
+
+        // Criar card do pedido
+        function criarCardPedido(pedido) {
+            const col = document.createElement('div');
+            col.className = 'col-lg-6 col-xl-4 mb-4';
+
+            const statusClass = getStatusClass(pedido.status);
+            const statusText = getStatusText(pedido.status);
+            const nomeCliente = pedido.cliente.nome || pedido.cliente || 'Cliente não informado';
+            const telefoneCliente = pedido.cliente.telefone || pedido.telefone || '';
+
+            // Formatação dos itens
+            const itensHtml = pedido.itens.map(item => {
+                const sabores = item.sabor ? ` - ${item.sabor}` : '';
+                return `<div class="order-items">
+                    ${item.quantidade}x ${item.produto}${sabores} (${item.tamanho})
+                    <span class="float-end">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+                </div>`;
+            }).join('');
+
+            // Botões de ação baseados no status
+            const botoesAcao = criarBotoesAcao(pedido);
+
+            col.innerHTML = `
+                <div class="card order-card ${pedido.status.toLowerCase()} shadow h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            Pedido #${pedido.numero || pedido._id.slice(-6)}
+                        </h6>
+                        <span class="badge ${statusClass} status-badge">${statusText}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <strong><i class="fas fa-user"></i> ${nomeCliente}</strong>
+                            ${telefoneCliente ? `<br><small class="text-muted"><i class="fas fa-phone"></i> ${telefoneCliente}</small>` : ''}
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> ${pedido.endereco}
+                            </small>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-clock"></i> ${new Date(pedido.dataPedido).toLocaleString('pt-BR')}
+                            </small>
+                        </div>
+                        <div class="mb-3">
+                            ${itensHtml}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span><strong>Total: R$ ${pedido.total.toFixed(2).replace('.', ',')}</strong></span>
+                            <small class="text-muted">${pedido.formaPagamento || 'N/I'}</small>
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-center">
+                            ${botoesAcao}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return col;
+        }
+
+        // Criar botões de ação baseados no status
+        function criarBotoesAcao(pedido) {
+            let botoes = '';
+
+            // Botão de imprimir comanda (sempre disponível, exceto cancelado)
+            if (pedido.status !== 'Cancelado') {
+                botoes += `<button class="btn btn-info btn-sm btn-action" onclick="imprimirComanda('${pedido._id}')" title="Imprimir Comanda">
+                    <i class="fas fa-print"></i>
+                </button>`;
+            }
+
+            // Botões de mudança de status
+            switch (pedido.status) {
+                case 'Pendente':
+                    botoes += `<button class="btn btn-warning btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Preparando')" title="Marcar como Preparando">
+                        <i class="fas fa-clock"></i>
+                    </button>`;
+                    botoes += `<button class="btn btn-danger btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Cancelado')" title="Cancelar Pedido">
+                        <i class="fas fa-times"></i>
+                    </button>`;
+                    break;
+                case 'Preparando':
+                    botoes += `<button class="btn btn-info btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Pronto')" title="Marcar como Pronto">
+                        <i class="fas fa-check"></i>
+                    </button>`;
+                    break;
+                case 'Pronto':
+                    botoes += `<button class="btn btn-success btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Entregue')" title="Marcar como Entregue">
+                        <i class="fas fa-truck"></i>
+                    </button>`;
+                    botoes += `<button class="btn btn-primary btn-sm btn-action" onclick="enviarConfirmacaoWhatsApp('${pedido._id}')" title="Enviar Confirmação WhatsApp">
+                        <i class="fab fa-whatsapp"></i>
+                    </button>`;
+                    break;
+            }
+
+            return botoes;
+        }
+
+        // Alterar status do pedido
+        async function alterarStatus(pedidoId, novoStatus) {
+            const pedido = todosPedidos.find(p => p._id === pedidoId);
+            if (!pedido) return;
+
+            const mensagens = {
+                'Preparando': 'Marcar pedido como "Preparando"?',
+                'Pronto': 'Marcar pedido como "Pronto"?',
+                'Entregue': 'Marcar pedido como "Entregue"?',
+                'Cancelado': 'Cancelar este pedido?'
+            };
+
+            document.getElementById('confirmMessage').textContent = mensagens[novoStatus];
+            
+            const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            modal.show();
+
+            document.getElementById('confirmButton').onclick = async function() {
+                try {
+                    await pastelariaAPI.atualizarStatusPedido(pedidoId, novoStatus);
+                    
+                    // Atualizar localmente
+                    pedido.status = novoStatus;
+                    
+                    // Recarregar a exibição
+                    filtrarPedidos();
+                    
+                    modal.hide();
+                    
+                    // Mostrar notificação de sucesso
+                    mostrarNotificacao('Status atualizado com sucesso!', 'success');
+                    
+                } catch (error) {
+                    console.error('Erro ao atualizar status:', error);
+                    mostrarNotificacao('Erro ao atualizar status do pedido', 'error');
+                }
+            };
+        }
+
+        // Imprimir comanda da cozinha
+        function imprimirComanda(pedidoId) {
+            const pedido = todosPedidos.find(p => p._id === pedidoId);
+            if (!pedido) return;
+
+            imprimirComandaCozinha(pedido);
+        }
+
+        // Função para imprimir comanda da cozinha
+        function imprimirComandaCozinha(pedido) {
+            const dataFormatada = new Date(pedido.dataPedido).toLocaleString('pt-BR');
+            const nomeCliente = pedido.cliente.nome || pedido.cliente || 'Cliente não informado';
+            const telefoneCliente = pedido.cliente.telefone || pedido.telefone || '';
+            
+            let comandaHtml = `
+                <div style="font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; max-width: 300px; margin: 0 auto;">
+                    <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
+                        <h2 style="margin: 0; font-size: 16px; font-weight: bold;">SABOR EXPRESS</h2>
+                        <h3 style="margin: 5px 0; font-size: 14px;">COMANDA DA COZINHA</h3>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <span><strong>PEDIDO No:</strong> ${pedido.numero || pedido._id.slice(-6)}</span>
+                            <span><strong>STATUS:</strong> ${pedido.status.toUpperCase()}</span>
+                        </div>
+                        <div><strong>DATA/HORA:</strong> ${dataFormatada}</div>
+                        <div><strong>CLIENTE:</strong> ${nomeCliente}</div>
+                        ${telefoneCliente ? `<div><strong>TELEFONE:</strong> ${telefoneCliente}</div>` : ''}
+                    </div>
+                    
+                    <div style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 10px 0; margin-bottom: 15px;">
+                        <h4 style="margin: 0 0 10px 0; text-align: center; font-size: 14px;">ITENS DO PEDIDO</h4>
+            `;
+            
+            pedido.itens.forEach((item, index) => {
+                const sabores = item.sabor ? item.sabor : 'N/A';
+                comandaHtml += `
+                    <div style="margin-bottom: 10px; padding: 5px; border: 1px dashed #666;">
+                        <div style="font-weight: bold; font-size: 13px;">${index + 1}. ${item.produto}</div>
+                        <div style="margin-left: 10px;">
+                            <div><strong>Sabor:</strong> ${sabores}</div>
+                            <div><strong>Tamanho:</strong> ${item.tamanho}</div>
+                            <div><strong>Quantidade:</strong> ${item.quantidade}x</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            comandaHtml += `
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px; padding-top: 10px; border-top: 2px solid #000;">
+                        <div style="font-size: 14px; font-weight: bold;">TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}</div>
+                        <div style="font-size: 12px; margin-top: 5px;">Pagamento: ${pedido.formaPagamento || 'N/I'}</div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 15px; font-size: 10px;">
+                        <div>${pedido.endereco}</div>
+                        <div style="margin-top: 10px;">Impresso em: ${new Date().toLocaleString('pt-BR')}</div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px;">
+                        <div style="font-size: 11px;">
+                            <div>ATENCAO COZINHA</div>
+                            <div>Verificar todos os ingredientes</div>
+                            <div>Conferir sabores e tamanhos</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Criar nova janela para impressão
+            const janelaImpressao = window.open('', '_blank', 'width=400,height=600');
+            janelaImpressao.document.write(
+                '<!DOCTYPE html>' +
+                '<html>' +
+                '<head>' +
+                '<title>Comanda da Cozinha - Pedido ' + (pedido.numero || pedido._id.slice(-6)) + '</title>' +
+                '<style>' +
+                '@media print {' +
+                'body { margin: 0; }' +
+                '@page { margin: 10mm; }' +
+                '}' +
+                'body {' +
+                'font-family: "Courier New", monospace;' +
+                'font-size: 12px;' +
+                'line-height: 1.4;' +
+                'margin: 0;' +
+                'padding: 10px;' +
+                'background: white;' +
+                '}' +
+                '</style>' +
+                '</head>' +
+                '<body>' +
+                comandaHtml +
+                '<scr' + 'ipt>' +
+                'window.onload = function() {' +
+                'window.print();' +
+                'setTimeout(function() {' +
+                'window.close();' +
+                '}, 1000);' +
+                '}' +
+                '</scr' + 'ipt>' +
+                '</body>' +
+                '</html>'
+            );
+            janelaImpressao.document.close();
+        }
+
+        // Função para gerar mensagem do WhatsApp
+        function gerarMensagemWhatsApp(pedido) {
+            if (!pedido) return;
+
+            const nomeCliente = pedido.cliente.nome || pedido.cliente || 'Cliente não informado';
+            const telefoneCliente = pedido.cliente.telefone || pedido.telefone || '';
+            const enderecoCliente = pedido.endereco || 'Endereço não informado';
+            const formaPagamento = pedido.formaPagamento || 'PIX';
+            
+            // Calcular subtotal dos itens
+            let subtotalItens = 0;
+            let itensTexto = '';
+            
+            pedido.itens.forEach((item, index) => {
+                const subtotalItem = item.quantidade * item.preco;
+                subtotalItens += subtotalItem;
+                
+                const sabores = item.sabor ? `, ${item.sabor}` : '';
+                const tamanhoInfo = item.tamanho ? ` (${item.tamanho})` : '';
+                
+                itensTexto += `${index + 1}. ${item.produto}${sabores}${tamanhoInfo}\n`;
+                itensTexto += `   Qtd: ${item.quantidade}x R$ ${item.preco.toFixed(2).replace('.', ',')}\n`;
+                itensTexto += `   Subtotal: R$ ${subtotalItem.toFixed(2).replace('.', ',')}\n\n`;
+            });
+            
+            // Calcular taxa de delivery
+            const taxaDelivery = pedido.taxaDelivery || (pedido.total - subtotalItens) || 2.00;
+            
+            const mensagem = `🛒 PEDIDO DELIVERY
+
+👤 Cliente: ${nomeCliente}
+📍 Endereço: ${enderecoCliente}
+💳 Pagamento: ${formaPagamento}
+
+📋 ITENS:
+${itensTexto}💰 SUBTOTAL: R$ ${subtotalItens.toFixed(2).replace('.', ',')}
+🚚 Taxa de Delivery: R$ ${taxaDelivery.toFixed(2).replace('.', ',')}
+💰 TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}
+
+📞 Pedido Nº: ${pedido.numero || pedido._id.slice(-6)}
+⏰ Data: ${new Date(pedido.dataPedido).toLocaleString('pt-BR')}
+
+Obrigado pela preferência! 🍕✨`;
+
+            // Mostrar modal com a mensagem
+            document.getElementById('whatsappMessage').textContent = mensagem;
+            document.getElementById('whatsappNumero').value = telefoneCliente;
+            
+            // Usar Bootstrap para mostrar o modal
+            const modal = new bootstrap.Modal(document.getElementById('whatsappModal'));
+            modal.show();
+            
+            // Preparar link do WhatsApp
+            const numeroWhatsApp = telefoneCliente.replace(/\D/g, ''); // Remove caracteres não numéricos
+            const mensagemCodificada = encodeURIComponent(mensagem);
+            const linkWhatsApp = `https://wa.me/55${numeroWhatsApp}?text=${mensagemCodificada}`;
+            
+            // Atualizar botão de envio
+            const btnEnviar = document.getElementById('btnEnviarWhatsApp');
+            btnEnviar.onclick = function() {
+                window.open(linkWhatsApp, '_blank');
+                modal.hide();
+            };
+        }
+
+        // Função para chamar a geração de mensagem WhatsApp
+        function enviarConfirmacaoWhatsApp(pedidoId) {
+            const pedido = todosPedidos.find(p => p._id === pedidoId);
+            if (!pedido) return;
+            
+            gerarMensagemWhatsApp(pedido);
+        }
+
+        // Funções auxiliares
+        function getStatusClass(status) {
+            const statusClasses = {
+                'Pendente': 'bg-primary',
+                'Preparando': 'bg-warning',
+                'Pronto': 'bg-info',
+                'Entregue': 'bg-success',
+                'Cancelado': 'bg-danger'
+            };
+            return statusClasses[status] || 'bg-secondary';
+        }
+
+        function getStatusText(status) {
+            const statusTexts = {
+                'Pendente': 'Novo',
+                'Preparando': 'Preparando',
+                'Pronto': 'Pronto',
+                'Entregue': 'Entregue',
+                'Cancelado': 'Cancelado'
+            };
+            return statusTexts[status] || status;
+        }
+
+        function mostrarNotificacao(mensagem, tipo) {
+            // Criar elemento de notificação
+            const notificacao = document.createElement('div');
+            notificacao.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            notificacao.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notificacao.innerHTML = `
+                ${mensagem}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(notificacao);
+
+            // Remover após 5 segundos
+            setTimeout(() => {
+                if (notificacao.parentNode) {
+                    notificacao.parentNode.removeChild(notificacao);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
