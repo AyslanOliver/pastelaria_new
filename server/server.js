@@ -15,13 +15,54 @@ const pedidosRoutes = require('./routes/pedidos');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+console.log('🚀 Iniciando servidor...');
+console.log('📍 Ambiente:', process.env.NODE_ENV || 'development');
+console.log('🔌 Porta:', PORT);
+
 // Conectar ao MongoDB
 connectDB();
 
 // Middlewares
 app.use(cors({
-  origin: ['http://localhost:8000', 'http://127.0.0.1:8000'],
-  credentials: true
+  origin: function(origin, callback) {
+    // Lista de origens permitidas
+    const allowedOrigins = [
+      'http://localhost:8000', 
+      'http://127.0.0.1:8000',
+      'http://192.168.18.104:8000',
+      'http://10.0.2.2:8000',  // Emulador Android
+      'file://',
+      'capacitor://localhost',
+      'ionic://localhost',
+      'http://localhost',
+      'http://192.168.18.104',
+      'http://10.0.2.2'  // Emulador Android
+    ];
+    
+    // Permitir requisições sem origin (mobile apps)
+    if (!origin) return callback(null, true);
+    
+    // Verificar se a origin está na lista permitida
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      // Detectar automaticamente IPs locais para desenvolvimento
+      const isLocalDevelopment = origin.match(/^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.|10\.0\.|172\.(1[6-9]|2[0-9]|3[01])\.)/);
+      if (isLocalDevelopment) {
+        callback(null, true);
+      } else {
+        // Em produção, permitir qualquer origin (pode ser restringido depois)
+        if (process.env.NODE_ENV === 'production') {
+          callback(null, true);
+        } else {
+          callback(new Error('Não permitido pelo CORS'));
+        }
+      }
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 app.use(bodyParser.json({ limit: '10mb' }));

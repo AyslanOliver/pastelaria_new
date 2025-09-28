@@ -145,6 +145,52 @@
                     </div>
 
                     <div class="row">
+                        <!-- Configurações da API -->
+                        <div class="col-lg-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-server"></i> Configurações da API
+                                    </h6>
+                                    <div class="dropdown no-arrow">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="testarConexaoAPI()">
+                                            <i class="fas fa-wifi"></i> Testar Conexão
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="mb-3">
+                                                <label for="apiUrl" class="form-label">URL da API</label>
+                                                <input type="text" class="form-control" id="apiUrl" placeholder="http://192.168.1.100:3000/api">
+                                                <div class="form-text">
+                                                    <strong>Dica:</strong> Use o IP da sua máquina na rede local. 
+                                                    <br>Exemplo: http://192.168.1.100:3000/api
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Status da Conexão</label>
+                                                <div id="apiStatus" class="alert alert-secondary" role="alert">
+                                                    <i class="fas fa-question-circle"></i> Não testado
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="resetarConfigAPI()">
+                                            <i class="fas fa-undo"></i> Resetar
+                                        </button>
+                                        <button type="button" class="btn btn-primary" onclick="salvarConfigAPI()">
+                                            <i class="fas fa-save"></i> Salvar Configuração
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Configurações da Impressora -->
                         <div class="col-lg-6">
                             <div class="card shadow mb-4">
@@ -596,9 +642,71 @@
             alert('Sistema resetado com sucesso! Todas as configurações foram restauradas para o padrão.');
         }
 
+        // Funções da API
+        function carregarConfiguracoesApi() {
+            const apiUrl = localStorage.getItem('api_base_url') || window.API_CONFIG?.BASE_URL || 'http://192.168.18.104:3000/api';
+            document.getElementById('apiUrl').value = apiUrl;
+            
+            // Verificar status da conexão
+            verificarConexaoApi();
+        }
+
+        function verificarConexaoApi() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const statusElement = document.getElementById('apiStatus');
+            
+            statusElement.innerHTML = '<span class="text-warning">Testando...</span>';
+            
+            fetch(apiUrl + '/test')
+                .then(response => {
+                    if (response.ok) {
+                        statusElement.innerHTML = '<span class="text-success">✓ Conectado</span>';
+                    } else {
+                        statusElement.innerHTML = '<span class="text-danger">✗ Erro na conexão</span>';
+                    }
+                })
+                .catch(error => {
+                    statusElement.innerHTML = '<span class="text-danger">✗ Falha na conexão</span>';
+                });
+        }
+
+        function salvarConfiguracoesApi() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            if (!apiUrl) {
+                alert('Por favor, insira uma URL válida para a API.');
+                return;
+            }
+            
+            // Salvar no localStorage
+            localStorage.setItem('api_base_url', apiUrl);
+            
+            // Atualizar configuração global se disponível
+            if (window.setApiUrl) {
+                window.setApiUrl(apiUrl);
+            }
+            
+            alert('Configurações da API salvas com sucesso!');
+            verificarConexaoApi();
+        }
+
+        function resetarConfiguracoesApi() {
+            if (confirm('Tem certeza que deseja resetar as configurações da API?')) {
+                localStorage.removeItem('api_base_url');
+                
+                if (window.resetApiConfig) {
+                    window.resetApiConfig();
+                }
+                
+                carregarConfiguracoesApi();
+                alert('Configurações da API resetadas com sucesso!');
+            }
+        }
+
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
             carregarConfiguracoes();
+            carregarConfiguracoesApi();
             
             // Toggle entrega grátis
             document.getElementById('entregaGratis').addEventListener('change', toggleEntregaGratis);

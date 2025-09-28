@@ -370,6 +370,24 @@
             document.getElementById('filtroData').value = hoje;
         });
 
+        // Função para formatar data do pedido com tratamento de erro
+        function formatarDataPedido(pedido) {
+            try {
+                const data = pedido.dataPedido || pedido.createdAt;
+                if (!data) return 'Data não informada';
+                
+                const dataObj = new Date(data);
+                if (isNaN(dataObj.getTime())) {
+                    return 'Data inválida';
+                }
+                
+                return dataObj.toLocaleString('pt-BR');
+            } catch (error) {
+                console.error('Erro ao formatar data:', error, pedido);
+                return 'Erro na data';
+            }
+        }
+
         // Carregar pedidos da API
         async function carregarPedidos() {
             try {
@@ -405,15 +423,34 @@
 
                 // Filtro por data
                 if (filtroData) {
-                    const dataPedido = new Date(pedido.dataPedido).toISOString().split('T')[0];
-                    if (dataPedido !== filtroData) {
-                        return false;
+                    try {
+                        const data = pedido.dataPedido || pedido.createdAt;
+                        if (data) {
+                            const dataObj = new Date(data);
+                            if (!isNaN(dataObj.getTime())) {
+                                const dataPedido = dataObj.toISOString().split('T')[0];
+                                if (dataPedido !== filtroData) {
+                                    return false;
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Erro ao filtrar por data:', error, pedido);
+                        // Se houver erro na data, não filtrar este pedido
                     }
                 }
 
                 // Filtro por cliente
                 if (filtroCliente) {
-                    const nomeCliente = (pedido.cliente.nome || pedido.cliente || '').toLowerCase();
+                    // Obter nome do cliente para filtro de forma robusta
+                    let nomeCliente = '';
+                    if (pedido.cliente) {
+                        if (typeof pedido.cliente === 'object' && pedido.cliente.nome) {
+                            nomeCliente = pedido.cliente.nome.toLowerCase();
+                        } else if (typeof pedido.cliente === 'string') {
+                            nomeCliente = pedido.cliente.toLowerCase();
+                        }
+                    }
                     if (!nomeCliente.includes(filtroCliente)) {
                         return false;
                     }
@@ -444,7 +481,11 @@
             container.innerHTML = '';
 
             // Ordenar por data (mais recentes primeiro)
-            pedidosFiltrados.sort((a, b) => new Date(b.dataPedido) - new Date(a.dataPedido));
+            pedidosFiltrados.sort((a, b) => {
+                const dataA = new Date(a.dataPedido || a.createdAt);
+                const dataB = new Date(b.dataPedido || b.createdAt);
+                return dataB - dataA;
+            });
 
             pedidosFiltrados.forEach(pedido => {
                 const card = criarCardPedido(pedido);
@@ -459,15 +500,29 @@
 
             const statusClass = getStatusClass(pedido.status);
             const statusText = getStatusText(pedido.status);
-            const nomeCliente = pedido.cliente.nome || pedido.cliente || 'Cliente não informado';
-            const telefoneCliente = pedido.cliente.telefone || pedido.telefone || '';
+            
+            // Obter nome do cliente de forma robusta
+            let nomeCliente = 'Cliente não informado';
+            if (pedido.cliente) {
+                if (typeof pedido.cliente === 'object' && pedido.cliente.nome) {
+                    nomeCliente = pedido.cliente.nome;
+                } else if (typeof pedido.cliente === 'string') {
+                    nomeCliente = pedido.cliente;
+                }
+            }
+            
+            const telefoneCliente = pedido.cliente?.telefone || pedido.telefone || '';
 
             // Formatação dos itens
             const itensHtml = pedido.itens.map(item => {
                 const sabores = item.sabor ? ` - ${item.sabor}` : '';
+                // Usar precoUnitario se disponível, senão usar preco
+                const preco = item.precoUnitario || item.preco || 0;
+                const quantidade = item.quantidade || 1;
+                const subtotalItem = (preco * quantidade);
                 return `<div class="order-items">
-                    ${item.quantidade}x ${item.produto}${sabores} (${item.tamanho})
-                    <span class="float-end">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+                    ${quantidade}x ${item.produto}${sabores} (${item.tamanho})
+                    <span class="float-end">R$ ${subtotalItem.toFixed(2).replace('.', ',')}</span>
                 </div>`;
             }).join('');
 
@@ -494,14 +549,14 @@
                         </div>
                         <div class="mb-2">
                             <small class="text-muted">
-                                <i class="fas fa-clock"></i> ${new Date(pedido.dataPedido).toLocaleString('pt-BR')}
+                                <i class="fas fa-clock"></i> ${formatarDataPedido(pedido)}
                             </small>
                         </div>
                         <div class="mb-3">
                             ${itensHtml}
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span><strong>Total: R$ ${pedido.total.toFixed(2).replace('.', ',')}</strong></span>
+                            <span><strong>Total: R$ ${(pedido.total || 0).toFixed(2).replace('.', ',')}</strong></span>
                             <small class="text-muted">${pedido.formaPagamento || 'N/I'}</small>
                         </div>
                         <div class="d-flex flex-wrap justify-content-center">
@@ -602,9 +657,30 @@
 
         // Função para imprimir comanda da cozinha
         function imprimirComandaCozinha(pedido) {
-            const dataFormatada = new Date(pedido.dataPedido).toLocaleString('pt-BR');
-            const nomeCliente = pedido.cliente.nome || pedido.cliente || 'Cliente não informado';
-            const telefoneCliente = pedido.cliente.telefone || pedido.telefone || '';
+            const dataFormatada = formatarDataPedido(pedido);
+            
+            // Obter dados do cliente de forma mais robusta
+            let nomeCliente = 'Cliente não informado';
+            let telefoneCliente = '';
+            let enderecoCliente = 'Endereço não informado';
+            
+            if (pedido.cliente) {
+                if (typeof pedido.cliente === 'object') {
+                    nomeCliente = pedido.cliente.nome || 'Cliente não informado';
+                    telefoneCliente = pedido.cliente.telefone || '';
+                    enderecoCliente = pedido.cliente.endereco || 'Endereço não informado';
+                } else if (typeof pedido.cliente === 'string') {
+                    nomeCliente = pedido.cliente;
+                }
+            }
+            
+            // Fallback para campos diretos no pedido
+            if (!telefoneCliente && pedido.telefone) {
+                telefoneCliente = pedido.telefone;
+            }
+            if (enderecoCliente === 'Endereço não informado' && pedido.endereco) {
+                enderecoCliente = pedido.endereco;
+            }
             
             let comandaHtml = `
                 <div style="font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; max-width: 300px; margin: 0 auto;">
@@ -645,12 +721,12 @@
                     </div>
                     
                     <div style="text-align: center; margin-top: 20px; padding-top: 10px; border-top: 2px solid #000;">
-                        <div style="font-size: 14px; font-weight: bold;">TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}</div>
+                        <div style="font-size: 14px; font-weight: bold;">TOTAL: R$ ${(pedido.total || 0).toFixed(2).replace('.', ',')}</div>
                         <div style="font-size: 12px; margin-top: 5px;">Pagamento: ${pedido.formaPagamento || 'N/I'}</div>
                     </div>
                     
                     <div style="text-align: center; margin-top: 15px; font-size: 10px;">
-                        <div>${pedido.endereco}</div>
+                        <div>${enderecoCliente}</div>
                         <div style="margin-top: 10px;">Impresso em: ${new Date().toLocaleString('pt-BR')}</div>
                     </div>
                     
@@ -706,9 +782,30 @@
         function gerarMensagemWhatsApp(pedido) {
             if (!pedido) return;
 
-            const nomeCliente = pedido.cliente.nome || pedido.cliente || 'Cliente não informado';
-            const telefoneCliente = pedido.cliente.telefone || pedido.telefone || '';
-            const enderecoCliente = pedido.endereco || 'Endereço não informado';
+            // Obter dados do cliente de forma mais robusta
+            let nomeCliente = 'Cliente não informado';
+            let telefoneCliente = '';
+            let enderecoCliente = 'Endereço não informado';
+            
+            // Verificar diferentes estruturas de dados do cliente
+            if (pedido.cliente) {
+                if (typeof pedido.cliente === 'object') {
+                    nomeCliente = pedido.cliente.nome || 'Cliente não informado';
+                    telefoneCliente = pedido.cliente.telefone || '';
+                    enderecoCliente = pedido.cliente.endereco || pedido.endereco || 'Endereço não informado';
+                } else if (typeof pedido.cliente === 'string') {
+                    nomeCliente = pedido.cliente;
+                }
+            }
+            
+            // Fallback para campos diretos no pedido
+            if (!telefoneCliente && pedido.telefone) {
+                telefoneCliente = pedido.telefone;
+            }
+            if (enderecoCliente === 'Endereço não informado' && pedido.endereco) {
+                enderecoCliente = pedido.endereco;
+            }
+            
             const formaPagamento = pedido.formaPagamento || 'PIX';
             
             // Calcular subtotal dos itens
@@ -716,35 +813,75 @@
             let itensTexto = '';
             
             pedido.itens.forEach((item, index) => {
-                const subtotalItem = item.quantidade * item.preco;
+                // Usar precoUnitario se disponível, senão usar preco
+                let preco = 0;
+                if (item.precoUnitario !== undefined && item.precoUnitario !== null) {
+                    preco = parseFloat(item.precoUnitario);
+                } else if (item.preco !== undefined && item.preco !== null) {
+                    preco = parseFloat(item.preco);
+                } else if (item.precoTotal && item.quantidade) {
+                    preco = parseFloat(item.precoTotal) / parseFloat(item.quantidade);
+                }
+                
+                const quantidade = parseInt(item.quantidade) || 1;
+                const subtotalItem = quantidade * preco;
                 subtotalItens += subtotalItem;
                 
-                const sabores = item.sabor ? `, ${item.sabor}` : '';
+                // Obter sabores corretamente
+                let saboresTexto = '';
+                if (item.sabores && Array.isArray(item.sabores) && item.sabores.length > 0) {
+                    const saboresNomes = item.sabores.map(sabor => {
+                        if (typeof sabor === 'object' && sabor.nome) {
+                            return sabor.nome;
+                        } else if (typeof sabor === 'string') {
+                            return sabor;
+                        }
+                        return '';
+                    }).filter(nome => nome);
+                    
+                    if (saboresNomes.length > 0) {
+                        saboresTexto = ` - ${saboresNomes.join(', ')}`;
+                    }
+                } else if (item.sabor) {
+                    saboresTexto = ` - ${item.sabor}`;
+                }
+                
                 const tamanhoInfo = item.tamanho ? ` (${item.tamanho})` : '';
                 
-                itensTexto += `${index + 1}. ${item.produto}${sabores}${tamanhoInfo}\n`;
-                itensTexto += `   Qtd: ${item.quantidade}x R$ ${item.preco.toFixed(2).replace('.', ',')}\n`;
+                // Obter nome do produto corretamente
+                let nomeProduto = 'Produto não informado';
+                if (item.produtoNome) {
+                    nomeProduto = item.produtoNome;
+                } else if (item.produto) {
+                    if (typeof item.produto === 'object' && item.produto.nome) {
+                        nomeProduto = item.produto.nome;
+                    } else if (typeof item.produto === 'string') {
+                        nomeProduto = item.produto;
+                    }
+                }
+                
+                itensTexto += `${index + 1}. ${nomeProduto}${saboresTexto}${tamanhoInfo}\n`;
+                itensTexto += `   Qtd: ${quantidade}x R$ ${preco.toFixed(2).replace('.', ',')}\n`;
                 itensTexto += `   Subtotal: R$ ${subtotalItem.toFixed(2).replace('.', ',')}\n\n`;
             });
             
             // Calcular taxa de delivery
-            const taxaDelivery = pedido.taxaDelivery || (pedido.total - subtotalItens) || 2.00;
+            const taxaEntrega = pedido.taxaEntrega || pedido.taxaDelivery || 5.00;
+            const total = pedido.total || (subtotalItens + taxaEntrega);
             
-            const mensagem = `🛒 PEDIDO DELIVERY
-
-👤 Cliente: ${nomeCliente}
-📍 Endereço: ${enderecoCliente}
-💳 Pagamento: ${formaPagamento}
-
-📋 ITENS:
-${itensTexto}💰 SUBTOTAL: R$ ${subtotalItens.toFixed(2).replace('.', ',')}
-🚚 Taxa de Delivery: R$ ${taxaDelivery.toFixed(2).replace('.', ',')}
-💰 TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}
-
-📞 Pedido Nº: ${pedido.numero || pedido._id.slice(-6)}
-⏰ Data: ${new Date(pedido.dataPedido).toLocaleString('pt-BR')}
-
-Obrigado pela preferência! 🍕✨`;
+            const dataFormatada = formatarDataPedido(pedido);
+            
+            const mensagem = `🍕 *PEDIDO #${pedido.numero || 'N/A'}*\n\n` +
+                           `👤 *Cliente:* ${nomeCliente}\n` +
+                           `📞 *Telefone:* ${telefoneCliente}\n` +
+                           `📍 *Endereço:* ${enderecoCliente}\n` +
+                           `💳 *Pagamento:* ${formaPagamento}\n\n` +
+                           `📋 *Itens:*\n${itensTexto}` +
+                           `💰 *Subtotal:* R$ ${subtotalItens.toFixed(2).replace('.', ',')}\n` +
+                           `🚚 *Taxa de Entrega:* R$ ${taxaEntrega.toFixed(2).replace('.', ',')}\n` +
+                           `💵 *Total:* R$ ${total.toFixed(2).replace('.', ',')}\n\n` +
+                           `📅 *Data:* ${dataFormatada}\n\n` +
+                           `Obrigado pela preferência! 🍕✨`;
 
             // Mostrar modal com a mensagem
             document.getElementById('whatsappMessage').textContent = mensagem;
