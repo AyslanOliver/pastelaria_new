@@ -45,7 +45,7 @@ function corsResponse(data: any, status = 200) {
 
 // Handler principal
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     // Tratar OPTIONS (preflight CORS)
     if (request.method === 'OPTIONS') {
       return new Response(null, {
@@ -102,7 +102,7 @@ export default {
       }, 500);
     }
   },
-} satisfies ExportedHandler<Env>;
+};
 
 // Handlers para cada recurso
 async function handleProdutos(request: Request, path: string, method: string): Promise<Response> {
@@ -126,7 +126,7 @@ async function handleProdutos(request: Request, path: string, method: string): P
     }
 
     if (method === 'POST') {
-      const body = await request.json();
+      const body = await request.json() as Partial<IProduto>;
       const produto = new Produto(body);
       await produto.save();
       return corsResponse(produto, 201);
@@ -134,7 +134,7 @@ async function handleProdutos(request: Request, path: string, method: string): P
 
     if (method === 'PUT') {
       const id = path.split('/')[3];
-      const body = await request.json();
+      const body = await request.json() as Partial<IProduto>;
       const produto = await Produto.findByIdAndUpdate(id, body, { new: true });
       if (!produto) {
         return corsResponse({ error: 'Produto não encontrado' }, 404);
@@ -177,7 +177,7 @@ async function handleSabores(request: Request, path: string, method: string): Pr
     }
 
     if (method === 'POST') {
-      const body = await request.json();
+      const body = await request.json() as Partial<ISabor>;
       const sabor = new Sabor(body);
       await sabor.save();
       return corsResponse(sabor, 201);
@@ -185,7 +185,7 @@ async function handleSabores(request: Request, path: string, method: string): Pr
 
     if (method === 'PUT') {
       const id = path.split('/')[3];
-      const body = await request.json();
+      const body = await request.json() as Partial<ISabor>;
       const sabor = await Sabor.findByIdAndUpdate(id, body, { new: true });
       if (!sabor) {
         return corsResponse({ error: 'Sabor não encontrado' }, 404);
@@ -228,7 +228,7 @@ async function handleTamanhos(request: Request, path: string, method: string): P
     }
 
     if (method === 'POST') {
-      const body = await request.json();
+      const body = await request.json() as Partial<ITamanho>;
       const tamanho = new Tamanho(body);
       await tamanho.save();
       return corsResponse(tamanho, 201);
@@ -236,7 +236,7 @@ async function handleTamanhos(request: Request, path: string, method: string): P
 
     if (method === 'PUT') {
       const id = path.split('/')[3];
-      const body = await request.json();
+      const body = await request.json() as Partial<ITamanho>;
       const tamanho = await Tamanho.findByIdAndUpdate(id, body, { new: true });
       if (!tamanho) {
         return corsResponse({ error: 'Tamanho não encontrado' }, 404);
@@ -279,7 +279,7 @@ async function handlePedidos(request: Request, path: string, method: string): Pr
     }
 
     if (method === 'POST') {
-      const body = await request.json();
+      const body = await request.json() as Partial<IPedido>;
       const pedido = new Pedido(body);
       await pedido.save();
       return corsResponse(pedido, 201);
@@ -287,7 +287,7 @@ async function handlePedidos(request: Request, path: string, method: string): Pr
 
     if (method === 'PUT') {
       const id = path.split('/')[3];
-      const body = await request.json();
+      const body = await request.json() as Partial<IPedido>;
       const pedido = await Pedido.findByIdAndUpdate(id, body, { new: true });
       if (!pedido) {
         return corsResponse({ error: 'Pedido não encontrado' }, 404);
