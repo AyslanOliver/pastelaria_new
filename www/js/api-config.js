@@ -7,9 +7,9 @@ window.API_CONFIG = {
     BASE_URL_NETWORK: 'http://10.0.0.126:3000/api/v1',
     // Para emulador Android
     BASE_URL_EMULATOR: 'http://10.0.2.2:3000/api/v1',
-    // Para produção - usando servidor local como fallback já que APIs externas não estão funcionando
-    BASE_URL_PRODUCTION: 'http://10.0.0.126:3000/api/v1',
-    VERSION: '3.2.0',
+    // Para produção - API hospedada no Render
+    BASE_URL_PRODUCTION: 'https://pastelaria-new.onrender.com/api',
+    VERSION: '3.4.0',
     TIMESTAMP: Date.now()
 };
 
@@ -153,8 +153,8 @@ function testApiConnection(baseUrl) {
     const urlToTest = baseUrl || window.API_CONFIG.BASE_URL;
     console.log('🔄 Testando conectividade com:', urlToTest);
     
-    // Usar o endpoint /health correto (não /v1/health)
-    const healthUrl = urlToTest.replace('/api/v1', '') + '/health';
+    // Primeiro tenta o endpoint /health na raiz
+    const healthUrl = urlToTest.replace('/api/v1', '').replace('/api', '') + '/health';
     
     fetch(healthUrl)
         .then(response => {
@@ -182,8 +182,8 @@ function testApiConnection(baseUrl) {
             console.log('❌ Erro ao conectar com a API:', error);
             console.log('🔧 Tentando endpoint alternativo...');
             
-            // Tentar endpoint alternativo
-            const altUrl = urlToTest + '/health';
+            // Tentar endpoint alternativo /api/health
+            const altUrl = urlToTest.replace('/api/v1', '/api') + '/health';
             fetch(altUrl)
                 .then(response => {
                     if (response.ok) {
