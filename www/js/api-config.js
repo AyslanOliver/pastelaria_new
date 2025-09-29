@@ -3,13 +3,13 @@
 window.API_CONFIG = {
     // Para desenvolvimento local (browser)
     BASE_URL_LOCAL: 'http://localhost:3000/api/v1',
-    // Para dispositivos móveis na mesma rede
-    BASE_URL_NETWORK: 'http://192.168.18.104:3000/api/v1',
+    // Para dispositivos móveis na mesma rede (IP atual da máquina)
+    BASE_URL_NETWORK: 'http://10.0.0.126:3000/api/v1',
     // Para emulador Android
     BASE_URL_EMULATOR: 'http://10.0.2.2:3000/api/v1',
-    // Para produção no Cloudflare Workers
-    BASE_URL_PRODUCTION: 'https://pastelaria-api.ayslano37.workers.dev/api/v1',
-    VERSION: '3.1.0',
+    // Para produção - usando servidor local como fallback já que APIs externas não estão funcionando
+    BASE_URL_PRODUCTION: 'http://10.0.0.126:3000/api/v1',
+    VERSION: '3.2.0',
     TIMESTAMP: Date.now()
 };
 
