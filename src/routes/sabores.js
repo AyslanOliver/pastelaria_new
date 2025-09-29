@@ -135,12 +135,25 @@ router.get('/api/v1/sabores', optionalAuth, async (request, env) => {
 
 // Buscar sabor por ID
 router.get('/api/v1/sabores/:id', 
-  validateUrlParams({ id: { required: true, type: 'string' } }),
   optionalAuth,
   withCache(300), // Cache por 5 minutos
   async (request, env) => {
     try {
       const { id } = request.params;
+      
+      // Validar ID
+      if (!id || isNaN(parseInt(id))) {
+        return new Response(JSON.stringify({
+          error: 'ID inválido',
+          code: 'INVALID_ID'
+        }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      
       const deviceType = request.headers.get('X-Device-Type') || 'desktop';
       
       const { results } = await env.DB.prepare(
@@ -277,12 +290,24 @@ router.post('/api/v1/sabores',
 
 // Atualizar sabor
 router.put('/api/v1/sabores/:id',
-  validateUrlParams({ id: { required: true, type: 'string' } }),
   authenticateRequest,
   validateRequest(saborSchema, false), // Validação parcial para updates
   async (request, env) => {
     try {
       const { id } = request.params;
+      
+      // Validar ID
+      if (!id || isNaN(parseInt(id))) {
+        return new Response(JSON.stringify({
+          error: 'ID inválido',
+          code: 'INVALID_ID'
+        }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
       const data = request.validatedData;
       const now = new Date().toISOString();
       
@@ -395,11 +420,23 @@ router.put('/api/v1/sabores/:id',
 
 // Remover sabor (soft delete)
 router.delete('/api/v1/sabores/:id',
-  validateUrlParams({ id: { required: true, type: 'string' } }),
   authenticateRequest,
   async (request, env) => {
     try {
       const { id } = request.params;
+      
+      // Validar ID
+      if (!id || isNaN(parseInt(id))) {
+        return new Response(JSON.stringify({
+          error: 'ID inválido',
+          code: 'INVALID_ID'
+        }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
       const now = new Date().toISOString();
       
       // Verificar se o sabor existe

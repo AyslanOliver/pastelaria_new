@@ -1,43 +1,35 @@
 // Cloudflare Worker principal - Otimizado para dispositivos móveis
 import { Router } from 'itty-router';
-import { handleCORS, addCORSHeaders } from './utils/cors.js';
-import { rateLimitMiddleware } from './middleware/auth.js';
-import { validateRequestSize } from './middleware/validation.js';
-import { withCache, cleanExpiredCache } from './utils/cache.js';
-import { compressResponse } from './utils/mobile-optimization.js';
+import { handleCORS, corsHeaders } from './utils/cors';
+import { rateLimitMiddleware, authenticateRequest } from './middleware/auth';
+import { validateRequestSize } from './middleware/validation';
+import { withCache, cleanExpiredCache } from './utils/cache';
+import { compressResponse } from './utils/mobile-optimization';
 
 // Importar rotas
-import produtosRouter from './routes/produtos.js';
-import saboresRouter from './routes/sabores.js';
-import tamanhosRouter from './routes/tamanhos.js';
-import pedidosRouter from './routes/pedidos.js';
-import syncRouter from './routes/sync.js';
+import produtosRouter from './routes/produtos';
+import saboresRouter from './routes/sabores';
+import tamanhosRouter from './routes/tamanhos';
+import pedidosRouter from './routes/pedidos';
+import syncRouter from './routes/sync';
 
 const router = Router();
 
-// Middleware global para CORS
-router.all('*', handleCORS);
-
-// Rota de health check
+// Rota de health check simples
 router.get('/health', () => {
-  return new Response(JSON.stringify({ 
+  return Response.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     version: '1.0.0'
-  }), {
-    headers: {
-      'Content-Type': 'application/json',
-      ...corsHeaders
-    }
   });
 });
 
-// Registrar todas as rotas
-router.all('*', produtosRouter.handle);
-router.all('*', saboresRouter.handle);
-router.all('*', tamanhosRouter.handle);
-router.all('*', pedidosRouter.handle);
-router.all('*', syncRouter.handle);
+// Registrar todas as rotas com prefixos específicos
+router.all('/api/v1/produtos/*', produtosRouter.handle);
+router.all('/api/v1/sabores/*', saboresRouter.handle);
+router.all('/api/v1/tamanhos/*', tamanhosRouter.handle);
+router.all('/api/v1/pedidos/*', pedidosRouter.handle);
+router.all('/api/v1/sync/*', syncRouter.handle);
 
 // Rota para limpeza de cache (administrativa)
 router.post('/api/v1/admin/clear-cache', authenticateRequest, async (request, env) => {

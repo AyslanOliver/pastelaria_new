@@ -267,17 +267,54 @@ export function sanitizeData(data, allowedFields) {
 export function validateUrlParams(params, schema) {
   const errors = [];
   
+  // Verificar se params e schema existem
+  if (!params || !schema) {
+    return errors;
+  }
+  
   for (const [param, validatorFunctions] of Object.entries(schema)) {
     const value = params[param];
     
+    // Verificar se validatorFunctions é um array
+    if (!Array.isArray(validatorFunctions)) {
+      continue;
+    }
+    
     for (const validatorFn of validatorFunctions) {
-      const error = validatorFn(value, param);
-      if (error) {
-        errors.push(error);
-        break;
+      if (typeof validatorFn === 'function') {
+        const error = validatorFn(value, param);
+        if (error) {
+          errors.push(error);
+          break;
+        }
       }
     }
   }
   
   return errors;
+}
+
+/**
+ * Middleware para validar tamanho da requisição
+ */
+export function validateRequestSize(maxSizeBytes = 1024 * 1024) { // 1MB por padrão
+  return async (request, env, ctx) => {
+    const contentLength = request.headers.get('Content-Length');
+    
+    if (contentLength && parseInt(contentLength) > maxSizeBytes) {
+      return new Response(JSON.stringify({
+        error: 'Requisição muito grande',
+        code: 'REQUEST_TOO_LARGE',
+        maxSize: maxSizeBytes
+      }), {
+        status: 413,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      });
+    }
+    
+    return null; // Continue para próximo middleware
+  };
 }
