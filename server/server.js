@@ -99,6 +99,26 @@ app.use('/api/sabores', saboresRoutes);
 app.use('/api/tamanhos', tamanhosRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 
+// Rota de health check (compatibilidade com frontend)
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    message: 'API da Pastelaria funcionando!',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Rota de health check alternativa
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    message: 'API da Pastelaria funcionando!',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Rota de teste
 app.get('/api/test', (req, res) => {
   res.json({ 
