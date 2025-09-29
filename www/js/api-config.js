@@ -1,16 +1,28 @@
 // Configuração da API - Arquivo separado para evitar cache
+// VERSÃO ATUALIZADA - Força limpeza de cache
 window.API_CONFIG = {
     // Para desenvolvimento local (browser)
-    BASE_URL_LOCAL: 'http://localhost:3000/api',
+    BASE_URL_LOCAL: 'http://localhost:3000/api/v1',
     // Para dispositivos móveis na mesma rede
-    BASE_URL_NETWORK: 'http://192.168.18.104:3000/api',
+    BASE_URL_NETWORK: 'http://192.168.18.104:3000/api/v1',
     // Para emulador Android
-    BASE_URL_EMULATOR: 'http://10.0.2.2:3000/api',
-    // Para produção no Vercel
-    BASE_URL_PRODUCTION: 'https://pastelaria-39rpg3z9u-ayslanoons-projects.vercel.app/api',
-    VERSION: '2.0.0',
+    BASE_URL_EMULATOR: 'http://10.0.2.2:3000/api/v1',
+    // Para produção no Cloudflare Workers
+    BASE_URL_PRODUCTION: 'https://pastelaria-api.ayslano37.workers.dev/api/v1',
+    VERSION: '3.1.0',
     TIMESTAMP: Date.now()
 };
+
+// Função para limpar cache da API
+function clearApiCache() {
+    try {
+        localStorage.removeItem('api_base_url');
+        sessionStorage.removeItem('api_base_url');
+        console.log('🧹 Cache da API limpo');
+    } catch (error) {
+        console.error('❌ Erro ao limpar cache:', error);
+    }
+}
 
 // Função para salvar configuração no localStorage
 function saveApiConfig(url) {
@@ -46,6 +58,14 @@ function getApiBaseUrl() {
     console.log('🔍 location.protocol:', location.protocol);
     console.log('🔍 navigator.userAgent:', navigator.userAgent);
     
+    // FORÇAR USO DA PRODUÇÃO PARA TESTES
+    console.log('🚀 FORÇANDO USO DA API DE PRODUÇÃO PARA TESTES');
+    const url = window.API_CONFIG.BASE_URL_PRODUCTION;
+    saveApiConfig(url);
+    return url;
+    
+    // Código original comentado para debug
+    /*
     // Primeiro, verifica se há configuração salva
     const savedConfig = loadApiConfig();
     if (savedConfig) {
@@ -93,6 +113,7 @@ function getApiBaseUrl() {
         console.log('🌐 URL da API:', window.API_CONFIG.BASE_URL_LOCAL);
         return window.API_CONFIG.BASE_URL_LOCAL;
     }
+    */
 }
 
 // Função para configurar manualmente a URL da API
@@ -112,32 +133,35 @@ window.setApiUrl = function(url) {
 // Função para resetar para configuração automática
 window.resetApiConfig = function() {
     console.log('🔄 Resetando configuração da API');
-    try {
-        localStorage.removeItem('api_base_url');
-    } catch (error) {
-        console.error('❌ Erro ao limpar configuração:', error);
-    }
+    clearApiCache();
     window.API_CONFIG.BASE_URL = getApiBaseUrl();
     testApiConnection();
 };
 
-// Define a URL base da API
+// Limpa cache antigo e define a URL base da API
+clearApiCache();
 window.API_CONFIG.BASE_URL = getApiBaseUrl();
 
-// Função para testar conectividade
-async function testApiConnection() {
-    try {
-        console.log('🔄 Testando conectividade com:', window.API_CONFIG.BASE_URL);
-        const response = await fetch(window.API_CONFIG.BASE_URL.replace('/api', '/api/test'), {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+// Função para testar conectividade com a API
+function testApiConnection(baseUrl) {
+    const urlToTest = baseUrl || window.API_CONFIG.BASE_URL;
+    console.log('🔄 Testando conectividade com:', urlToTest);
+    
+    // Usar o endpoint /health correto (não /v1/health)
+    const healthUrl = urlToTest.replace('/api/v1', '') + '/health';
+    
+    fetch(healthUrl)
+        .then(response => {
+            if (response.ok) {
+                console.log('✅ API conectada com sucesso!');
+                console.log('📊 Status:', response.status);
+                return response.json();
+            } else {
+                throw new Error(`HTTP ${response.status}`);
             }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ API conectada com sucesso:', data);
+        })
+        .then(data => {
+            console.log('📋 Resposta da API:', data);
             
             // Mostra notificação de sucesso se possível
             if (window.app && window.app.toast) {
@@ -147,36 +171,46 @@ async function testApiConnection() {
                     closeTimeout: 3000,
                 }).open();
             }
+        })
+        .catch(error => {
+            console.log('❌ Erro ao conectar com a API:', error);
+            console.log('🔧 Tentando endpoint alternativo...');
             
-            return true;
-        } else {
-            console.error('❌ Erro na resposta da API:', response.status, response.statusText);
-            
-            // Mostra notificação de erro se possível
-            if (window.app && window.app.toast) {
-                window.app.toast.create({
-                    text: `❌ Erro na API: ${response.status}`,
-                    position: 'top',
-                    closeTimeout: 5000,
-                }).open();
-            }
-            
-            return false;
-        }
-    } catch (error) {
-        console.error('❌ Erro ao conectar com a API:', error);
-        
-        // Mostra notificação de erro se possível
-        if (window.app && window.app.toast) {
-            window.app.toast.create({
-                text: '❌ Erro de conexão com a API',
-                position: 'top',
-                closeTimeout: 5000,
-            }).open();
-        }
-        
-        return false;
-    }
+            // Tentar endpoint alternativo
+            const altUrl = urlToTest + '/health';
+            fetch(altUrl)
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ Endpoint alternativo funcionando!');
+                        if (window.app && window.app.toast) {
+                            window.app.toast.create({
+                                text: '✅ API conectada (endpoint alternativo)!',
+                                position: 'top',
+                                closeTimeout: 3000,
+                            }).open();
+                        }
+                    } else {
+                        console.log('❌ Endpoint alternativo também falhou');
+                        if (window.app && window.app.toast) {
+                            window.app.toast.create({
+                                text: '❌ Erro de conexão com a API',
+                                position: 'top',
+                                closeTimeout: 5000,
+                            }).open();
+                        }
+                    }
+                })
+                .catch(() => {
+                    console.log('❌ Todos os endpoints falharam');
+                    if (window.app && window.app.toast) {
+                        window.app.toast.create({
+                            text: '❌ Erro de conexão com a API',
+                            position: 'top',
+                            closeTimeout: 5000,
+                        }).open();
+                    }
+                });
+        });
 }
 
 // Testa a conexão quando o arquivo é carregado
@@ -184,8 +218,10 @@ setTimeout(() => {
     testApiConnection();
 }, 1000);
 
-console.log('🔄 Configuração da API carregada:', window.API_CONFIG);
+console.log('🔄 Configuração da API carregada (VERSÃO 3.1.0):', window.API_CONFIG);
+console.log('🎯 URL ATIVA:', window.API_CONFIG.BASE_URL);
 
 // Expõe funções globalmente para debug
 window.testApiConnection = testApiConnection;
 window.API_CONFIG.test = testApiConnection;
+window.clearApiCache = clearApiCache;

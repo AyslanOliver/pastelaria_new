@@ -1,5 +1,14 @@
 // Configuração da API - usando arquivo de configuração separado
-const API_BASE_URL = window.API_CONFIG ? window.API_CONFIG.BASE_URL : 'http://localhost:3000/api';
+// Aguarda a configuração ser carregada
+function getApiBaseUrl() {
+    if (window.API_CONFIG && window.API_CONFIG.BASE_URL) {
+        return window.API_CONFIG.BASE_URL;
+    }
+    // Fallback para desenvolvimento local
+    return 'http://localhost:3000/api';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Log para debug
 console.log('🔄 API configurada para:', API_BASE_URL, 'Config:', window.API_CONFIG);
@@ -7,7 +16,15 @@ console.log('🔄 API configurada para:', API_BASE_URL, 'Config:', window.API_CO
 // Classe para gerenciar chamadas da API
 class PastelariaAPI {
     constructor() {
-        this.baseURL = API_BASE_URL;
+        // Atualiza a URL base dinamicamente
+        this.baseURL = getApiBaseUrl();
+        console.log('🏗️ PastelariaAPI inicializada com:', this.baseURL);
+    }
+
+    // Método para atualizar a URL base
+    updateBaseUrl() {
+        this.baseURL = getApiBaseUrl();
+        console.log('🔄 URL base atualizada para:', this.baseURL);
     }
 
     // Método genérico para fazer requisições

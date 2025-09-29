@@ -38,6 +38,6 @@
     },
     "dependencies": {
         "framework7": "^7.1.5",
-        "itty-router": "^5.0.22"
+        "itty-router": "^3.0.12"
     }
 }
