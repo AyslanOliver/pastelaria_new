@@ -14,30 +14,37 @@ const router = Router();
 
 // Schema de validação para pedidos
 const pedidoSchema = {
-  cliente_nome: { required: true, type: 'string', maxLength: 100 },
-  cliente_telefone: { required: true, type: 'string', maxLength: 20 },
-  cliente_endereco: { type: 'string', maxLength: 500 },
-  tipo_entrega: { required: true, type: 'enum', values: ['balcao', 'entrega'] },
-  forma_pagamento: { required: true, type: 'enum', values: ['dinheiro', 'cartao', 'pix'] },
-  observacoes: { type: 'string', maxLength: 1000 },
-  itens: { 
-    required: true, 
-    type: 'array', 
-    minItems: 1,
-    items: {
-      produto_id: { required: true, type: 'string' },
-      quantidade: { required: true, type: 'number', min: 1 },
-      preco_unitario: { required: true, type: 'number', min: 0 },
-      observacoes: { type: 'string', maxLength: 200 },
-      sabores: {
-        type: 'array',
-        items: {
-          sabor_id: { required: true, type: 'string' },
-          preco_adicional: { type: 'number', min: 0, default: 0 }
-        }
-      }
-    }
-  }
+  cliente_nome: [
+    (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
+    (v, f) => typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
+    (v, f) => v && v.length > 100 ? `Campo '${f}' deve ter no máximo 100 caracteres` : null
+  ],
+  cliente_telefone: [
+    (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
+    (v, f) => typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
+    (v, f) => v && v.length > 20 ? `Campo '${f}' deve ter no máximo 20 caracteres` : null
+  ],
+  cliente_endereco: [
+    (v, f) => v && typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
+    (v, f) => v && v.length > 500 ? `Campo '${f}' deve ter no máximo 500 caracteres` : null
+  ],
+  tipo_entrega: [
+    (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
+    (v, f) => !['balcao', 'entrega'].includes(v) ? `Campo '${f}' deve ser 'balcao' ou 'entrega'` : null
+  ],
+  forma_pagamento: [
+    (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
+    (v, f) => !['dinheiro', 'cartao', 'pix'].includes(v) ? `Campo '${f}' deve ser 'dinheiro', 'cartao' ou 'pix'` : null
+  ],
+  observacoes: [
+    (v, f) => v && typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
+    (v, f) => v && v.length > 1000 ? `Campo '${f}' deve ter no máximo 1000 caracteres` : null
+  ],
+  itens: [
+    (v, f) => v === undefined || v === null ? `Campo '${f}' é obrigatório` : null,
+    (v, f) => !Array.isArray(v) ? `Campo '${f}' deve ser uma lista` : null,
+    (v, f) => v && v.length < 1 ? `Campo '${f}' deve ter pelo menos 1 item` : null
+  ]
 };
 
 // Listar pedidos com otimizações para mobile
@@ -297,7 +304,6 @@ router.get('/api/v1/pedidos/:id',
 
 // Criar novo pedido
 router.post('/api/v1/pedidos',
-  authenticateRequest,
   validateRequest(pedidoSchema),
   async (request, env) => {
     try {

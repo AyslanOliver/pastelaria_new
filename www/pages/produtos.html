@@ -331,7 +331,8 @@
         async function carregarProdutos() {
             try {
                 // Carregar produtos da API
-                produtos = await api.getProdutos();
+                const response = await api.getProdutos();
+                produtos = response.data || response; // Suporte para ambos os formatos
                 
                 const tbody = document.getElementById('produtosTableBody');
                 tbody.innerHTML = '';

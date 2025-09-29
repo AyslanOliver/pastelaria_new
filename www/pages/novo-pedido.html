@@ -338,9 +338,13 @@
         async function carregarDadosIniciais() {
             try {
                 // Carregar produtos, tamanhos e sabores da API
-                produtos = await api.getProdutos();
-                tamanhos = await api.getTamanhos();
-                sabores = await api.getSabores();
+                const produtosResponse = await api.getProdutos();
+                const tamanhosResponse = await api.getTamanhos();
+                const saboresResponse = await api.getSabores();
+                
+                produtos = produtosResponse.data || produtosResponse;
+                tamanhos = tamanhosResponse.data || tamanhosResponse;
+                sabores = saboresResponse.data || saboresResponse;
                 
                 console.log('Dados carregados:', { produtos: produtos.length, tamanhos: tamanhos.length, sabores: sabores.length });
             } catch (error) {

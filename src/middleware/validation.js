@@ -155,11 +155,19 @@ export function validateData(data, schema) {
   for (const [field, validatorFunctions] of Object.entries(schema)) {
     const value = data[field];
     
+    // Verificar se validatorFunctions é um array
+    if (!Array.isArray(validatorFunctions)) {
+      console.warn(`Schema inválido para campo '${field}': deve ser um array de funções`);
+      continue;
+    }
+    
     for (const validatorFn of validatorFunctions) {
-      const error = validatorFn(value, field);
-      if (error) {
-        errors.push(error);
-        break; // Para no primeiro erro do campo
+      if (typeof validatorFn === 'function') {
+        const error = validatorFn(value, field);
+        if (error) {
+          errors.push(error);
+          break; // Para no primeiro erro do campo
+        }
       }
     }
   }

@@ -395,7 +395,8 @@
                 document.getElementById('pedidosContainer').style.display = 'none';
                 document.getElementById('noPedidos').style.display = 'none';
 
-                todosPedidos = await pastelariaAPI.getPedidos();
+                const response = await pastelariaAPI.getPedidos();
+                todosPedidos = response.data || response; // Suporte para ambos os formatos
                 pedidosFiltrados = [...todosPedidos];
                 
                 filtrarPedidos();

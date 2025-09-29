@@ -350,11 +350,16 @@
                 }
 
                 // Carregar dados dos cards
-                const [produtos, sabores, pedidos] = await Promise.all([
+                const [produtosResponse, saboresResponse, pedidosResponse] = await Promise.all([
                     pastelariaAPI.getProdutos(),
                     pastelariaAPI.getSabores(),
                     pastelariaAPI.getPedidos()
                 ]);
+
+                // Extrair dados das respostas
+                const produtos = produtosResponse.data || produtosResponse;
+                const sabores = saboresResponse.data || saboresResponse;
+                const pedidos = pedidosResponse.data || pedidosResponse;
 
                 // Calcular estatísticas
                 const produtosAtivos = produtos.filter(p => p.ativo).length;
