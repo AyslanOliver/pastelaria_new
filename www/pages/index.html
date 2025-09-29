@@ -415,8 +415,8 @@
                     
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>#${pedido.numero || pedido._id.slice(-6)}</td>
-                        <td>${pedido.cliente.nome}</td>
+                        <td>#${pedido.numero || pedido.id.toString().slice(-6)}</td>
+                        <td>${pedido.cliente_nome}</td>
                         <td>R$ ${pedido.total.toFixed(2).replace('.', ',')}</td>
                         <td><span class="badge ${statusClass}">${statusText}</span></td>
                     `;

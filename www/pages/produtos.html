@@ -349,10 +349,10 @@
                                 </span>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-primary" onclick="editarProduto('${produto._id}')">
+                                <button class="btn btn-sm btn-primary" onclick="editarProduto('${produto.id}')">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger" onclick="excluirProduto('${produto._id}')">
+                                <button class="btn btn-sm btn-danger" onclick="excluirProduto('${produto.id}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -402,10 +402,10 @@
         }
 
         function editarProduto(id) {
-            const produto = produtos.find(p => p._id === id);
+            const produto = produtos.find(p => p.id === id);
             if (!produto) return;
 
-            document.getElementById('editProdutoId').value = produto._id;
+            document.getElementById('editProdutoId').value = produto.id;
             document.getElementById('editProdutoNome').value = produto.nome;
             document.getElementById('editProdutoCategoria').value = produto.categoria;
             document.getElementById('editProdutoPreco').value = produto.preco;

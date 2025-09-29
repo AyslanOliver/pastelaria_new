@@ -40,25 +40,8 @@ router.get('/health', () => {
 // Integrar roteador de produtos (que já funcionava)
 router.all('/api/v1/produtos*', produtosRouter.handle);
 
-// Integrar roteador de pedidos - usando fetch para debug
-router.all('/api/v1/pedidos*', async (request, env, ctx) => {
-  try {
-    console.log('Roteando pedidos:', request.method, request.url);
-    return await pedidosRouter.handle(request, env, ctx);
-  } catch (error) {
-    console.error('Erro no roteador de pedidos:', error);
-    return new Response(JSON.stringify({
-      error: 'Erro interno no roteador de pedidos',
-      message: error.message
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        ...corsHeaders
-      }
-    });
-  }
-});
+// Integrar roteador de pedidos - corrigido
+router.all('/api/v1/pedidos*', pedidosRouter.handle);
 
 // Rota simplificada para sabores (conectando ao banco D1)
 router.get('/api/v1/sabores', async (request, env) => {

@@ -534,7 +534,7 @@
                 <div class="card order-card ${pedido.status.toLowerCase()} shadow h-100">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            Pedido #${pedido.numero || pedido._id.slice(-6)}
+                            Pedido #${pedido.numero || pedido.id.toString().slice(-6)}
                         </h6>
                         <span class="badge ${statusClass} status-badge">${statusText}</span>
                     </div>
@@ -576,7 +576,7 @@
 
             // Botão de imprimir comanda (sempre disponível, exceto cancelado)
             if (pedido.status !== 'Cancelado') {
-                botoes += `<button class="btn btn-info btn-sm btn-action" onclick="imprimirComanda('${pedido._id}')" title="Imprimir Comanda">
+                botoes += `<button class="btn btn-info btn-sm btn-action" onclick="imprimirComanda('${pedido.id}')" title="Imprimir Comanda">
                     <i class="fas fa-print"></i>
                 </button>`;
             }
@@ -584,23 +584,23 @@
             // Botões de mudança de status
             switch (pedido.status) {
                 case 'Pendente':
-                    botoes += `<button class="btn btn-warning btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Preparando')" title="Marcar como Preparando">
+                    botoes += `<button class="btn btn-warning btn-sm btn-action" onclick="alterarStatus('${pedido.id}', 'Preparando')" title="Marcar como Preparando">
                         <i class="fas fa-clock"></i>
                     </button>`;
-                    botoes += `<button class="btn btn-danger btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Cancelado')" title="Cancelar Pedido">
+                    botoes += `<button class="btn btn-danger btn-sm btn-action" onclick="alterarStatus('${pedido.id}', 'Cancelado')" title="Cancelar Pedido">
                         <i class="fas fa-times"></i>
                     </button>`;
                     break;
                 case 'Preparando':
-                    botoes += `<button class="btn btn-info btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Pronto')" title="Marcar como Pronto">
+                    botoes += `<button class="btn btn-info btn-sm btn-action" onclick="alterarStatus('${pedido.id}', 'Pronto')" title="Marcar como Pronto">
                         <i class="fas fa-check"></i>
                     </button>`;
                     break;
                 case 'Pronto':
-                    botoes += `<button class="btn btn-success btn-sm btn-action" onclick="alterarStatus('${pedido._id}', 'Entregue')" title="Marcar como Entregue">
+                    botoes += `<button class="btn btn-success btn-sm btn-action" onclick="alterarStatus('${pedido.id}', 'Entregue')" title="Marcar como Entregue">
                         <i class="fas fa-truck"></i>
                     </button>`;
-                    botoes += `<button class="btn btn-primary btn-sm btn-action" onclick="enviarConfirmacaoWhatsApp('${pedido._id}')" title="Enviar Confirmação WhatsApp">
+                    botoes += `<button class="btn btn-primary btn-sm btn-action" onclick="enviarConfirmacaoWhatsApp('${pedido.id}')" title="Enviar Confirmação WhatsApp">
                         <i class="fab fa-whatsapp"></i>
                     </button>`;
                     break;
@@ -611,7 +611,7 @@
 
         // Alterar status do pedido
         async function alterarStatus(pedidoId, novoStatus) {
-            const pedido = todosPedidos.find(p => p._id === pedidoId);
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
             if (!pedido) return;
 
             const mensagens = {
@@ -650,7 +650,7 @@
 
         // Imprimir comanda da cozinha
         function imprimirComanda(pedidoId) {
-            const pedido = todosPedidos.find(p => p._id === pedidoId);
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
             if (!pedido) return;
 
             imprimirComandaCozinha(pedido);
@@ -692,7 +692,7 @@
                     
                     <div style="margin-bottom: 15px;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span><strong>PEDIDO No:</strong> ${pedido.numero || pedido._id.slice(-6)}</span>
+                            <span><strong>PEDIDO No:</strong> ${pedido.numero || pedido.id.toString().slice(-6)}</span>
                             <span><strong>STATUS:</strong> ${pedido.status.toUpperCase()}</span>
                         </div>
                         <div><strong>DATA/HORA:</strong> ${dataFormatada}</div>
@@ -747,7 +747,7 @@
                 '<!DOCTYPE html>' +
                 '<html>' +
                 '<head>' +
-                '<title>Comanda da Cozinha - Pedido ' + (pedido.numero || pedido._id.slice(-6)) + '</title>' +
+                '<title>Comanda da Cozinha - Pedido ' + (pedido.numero || pedido.id.toString().slice(-6)) + '</title>' +
                 '<style>' +
                 '@media print {' +
                 'body { margin: 0; }' +
@@ -907,7 +907,7 @@
 
         // Função para chamar a geração de mensagem WhatsApp
         function enviarConfirmacaoWhatsApp(pedidoId) {
-            const pedido = todosPedidos.find(p => p._id === pedidoId);
+            const pedido = todosPedidos.find(p => p.id === pedidoId);
             if (!pedido) return;
             
             gerarMensagemWhatsApp(pedido);

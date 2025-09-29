@@ -200,8 +200,9 @@
                                                     <option value="">Selecione...</option>
                                                     <option value="PIX">PIX</option>
                                                     <option value="Dinheiro">Dinheiro</option>
-                                                    <option value="Cartão de Crédito">Cartão de Crédito</option>
-                                                    <option value="Cartão de Débito">Cartão de Débito</option>
+                                                    <option value="Crédito">Cartão de Crédito</option>
+                                                    <option value="Débito">Cartão de Débito</option>
+                                                    <option value="Cartão">Cartão (Genérico)</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-6 mb-3">
@@ -209,7 +210,7 @@
                                                 <select class="form-select" id="tipoEntrega" required>
                                                     <option value="">Selecione...</option>
                                                     <option value="Entrega">Entrega</option>
-                                                    <option value="Retirada">Retirada</option>
+                                                    <option value="Balcão">Retirada no Balcão</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -384,14 +385,14 @@
                                 <label class="form-label">Produto *</label>
                                 <select class="form-select produto-select" data-item="${contadorItens}" required>
                                     <option value="">Selecione um produto...</option>
-                                    ${produtos.map(p => `<option value="${p._id}" data-preco="${p.preco}" data-categoria="${p.categoria}">${p.nome} - R$ ${p.preco.toFixed(2)}</option>`).join('')}
+                                    ${produtos.map(p => `<option value="${p.id}" data-preco="${p.preco}" data-categoria="${p.categoria}">${p.nome} - R$ ${p.preco.toFixed(2)}</option>`).join('')}
                                 </select>
                             </div>
                             <div class="col-md-2 mb-3 tamanho-container" style="display: none;">
                                 <label class="form-label">Tamanho</label>
                                 <select class="form-select tamanho-select" data-item="${contadorItens}">
                                     <option value="">Selecione...</option>
-                                    ${tamanhos.map(t => `<option value="${t._id}" data-multiplicador="${t.multiplicador}">${t.nome}</option>`).join('')}
+                                    ${tamanhos.map(t => `<option value="${t.id}" data-multiplicador="${t.multiplicador}">${t.nome}</option>`).join('')}
                                 </select>
                             </div>
                             <div class="col-md-3 mb-3 sabor-container" style="display: none;">
@@ -399,10 +400,10 @@
                                 <div class="sabores-checkboxes" data-item="${contadorItens}">
                                     ${sabores.map(s => `
                                         <div class="form-check">
-                                            <input class="form-check-input sabor-checkbox" type="checkbox" value="${s._id}" 
+                                            <input class="form-check-input sabor-checkbox" type="checkbox" value="${s.id}" 
                                                    data-nome="${s.nome}" data-adicional="${s.precoAdicional}" 
-                                                   id="sabor-${contadorItens}-${s._id}">
-                                            <label class="form-check-label" for="sabor-${contadorItens}-${s._id}">
+                                                   id="sabor-${contadorItens}-${s.id}">
+                                            <label class="form-check-label" for="sabor-${contadorItens}-${s.id}">
                                                 ${s.nome}${s.precoAdicional > 0 ? ` (+R$ ${s.precoAdicional.toFixed(2)})` : ''}
                                             </label>
                                         </div>
@@ -607,42 +608,41 @@
             const total = subtotal + taxaEntrega;
             
             const pedidoData = {
-                cliente: {
-                    nome: nomeCliente,
-                    telefone: telefoneCliente,
-                    endereco: enderecoCliente,
-                    observacoes: document.getElementById('observacoesCliente').value
-                },
+                cliente_nome: nomeCliente,
+                cliente_telefone: telefoneCliente,
+                cliente_endereco: enderecoCliente,
+                observacoes: document.getElementById('observacoesCliente').value,
                 itens: itens.map(item => {
-                     const produto = produtos.find(p => p._id === item.produtoId);
+                     const produto = produtos.find(p => p.id === item.produtoId);
                      return {
-                         produto: item.produtoId,
-                         produtoNome: produto ? produto.nome : 'Produto não encontrado',
-                         tamanho: item.tamanhoId || null,
-                         sabores: item.sabores || [],
+                         produto_id: parseInt(item.produtoId),
                          quantidade: item.quantidade,
-                         precoUnitario: item.precoUnitario,
-                         precoTotal: item.precoTotal,
-                         observacoes: item.observacoes
+                         preco_unitario: item.precoUnitario,
+                         tamanho_id: item.tamanhoId ? parseInt(item.tamanhoId) : null,
+                         sabores: item.sabores || []
                      };
                  }),
                 subtotal: subtotal,
-                taxaEntrega: taxaEntrega,
+                taxa_entrega: taxaEntrega,
                 total: total,
-                formaPagamento: formaPagamento,
-                tipoEntrega: tipoEntrega,
-                dataEntrega: document.getElementById('dataEntrega').value || null,
-                horaEntrega: document.getElementById('horaEntrega').value || null,
-                valorTroco: document.getElementById('valorTroco').value || null,
+                forma_pagamento: formaPagamento,
+                tipo_entrega: tipoEntrega,
+                data_entrega: document.getElementById('dataEntrega').value || null,
+                hora_entrega: document.getElementById('horaEntrega').value || null,
+                valor_troco: document.getElementById('valorTroco').value || null,
                 status: 'Pendente'
             };
             
             try {
-                const pedidoCriado = await api.criarPedido(pedidoData);
+                const response = await api.criarPedido(pedidoData);
+                console.log('Resposta da API:', response);
+                
+                // A API retorna { success: true, data: { pedido completo } }
+                const pedidoCriado = response.data;
                 console.log('Pedido criado:', pedidoCriado);
                 
                 // Mostrar mensagem de sucesso
-                alert(`Pedido #${pedidoCriado.numeroPedido} criado com sucesso!`);
+                alert(`Pedido #${pedidoCriado.numero} criado com sucesso!`);
                 
                 // Gerar mensagem do WhatsApp e imprimir comanda
                 gerarMensagemWhatsAppNovoPedido(pedidoCriado);

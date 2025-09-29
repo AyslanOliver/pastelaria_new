@@ -58,14 +58,6 @@ function getApiBaseUrl() {
     console.log('🔍 location.protocol:', location.protocol);
     console.log('🔍 navigator.userAgent:', navigator.userAgent);
     
-    // FORÇAR USO DA PRODUÇÃO PARA TESTES
-    console.log('🚀 FORÇANDO USO DA API DE PRODUÇÃO PARA TESTES');
-    const url = window.API_CONFIG.BASE_URL_PRODUCTION;
-    saveApiConfig(url);
-    return url;
-    
-    // Código original comentado para debug
-    /*
     // Primeiro, verifica se há configuração salva
     const savedConfig = loadApiConfig();
     if (savedConfig) {
@@ -109,11 +101,12 @@ function getApiBaseUrl() {
         saveApiConfig(url); // Salva para próximas vezes
         return url;
     } else {
-        console.log('💻 Detectado ambiente browser - usando localhost');
-        console.log('🌐 URL da API:', window.API_CONFIG.BASE_URL_LOCAL);
-        return window.API_CONFIG.BASE_URL_LOCAL;
+        console.log('💻 Detectado ambiente browser - usando produção para testes');
+        console.log('🌐 URL da API:', window.API_CONFIG.BASE_URL_PRODUCTION);
+        const url = window.API_CONFIG.BASE_URL_PRODUCTION;
+        saveApiConfig(url);
+        return url;
     }
-    */
 }
 
 // Função para configurar manualmente a URL da API

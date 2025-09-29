@@ -1,14 +1,7 @@
+// API de Pedidos - Cloudflare Workers com D1
+
 import { Router } from 'itty-router';
-import { validateRequest, validateUrlParams } from '../middleware/validation.js';
-import { authenticateRequest, optionalAuth } from '../middleware/auth.js';
-import { withCache, generateCacheKey, invalidateCache } from '../utils/cache.js';
-import { addCORSHeaders } from '../utils/cors.js';
-import { 
-  optimizeForMobile, 
-  createMobilePagination, 
-  compressResponse,
-  adaptResponseForDevice 
-} from '../utils/mobile-optimization.js';
+import { corsHeaders } from '../utils/cors.js';
 
 const router = Router();
 
@@ -17,12 +10,13 @@ const pedidoSchema = {
   cliente_nome: [
     (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
     (v, f) => typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
-    (v, f) => v && v.length > 100 ? `Campo '${f}' deve ter no máximo 100 caracteres` : null
+    (v, f) => v.length < 2 ? `Campo '${f}' deve ter pelo menos 2 caracteres` : null,
+    (v, f) => v.length > 100 ? `Campo '${f}' deve ter no máximo 100 caracteres` : null
   ],
   cliente_telefone: [
     (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
     (v, f) => typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
-    (v, f) => v && v.length > 20 ? `Campo '${f}' deve ter no máximo 20 caracteres` : null
+    (v, f) => !/^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(v) ? `Campo '${f}' deve estar no formato (XX) XXXXX-XXXX` : null
   ],
   cliente_endereco: [
     (v, f) => v && typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
@@ -30,11 +24,11 @@ const pedidoSchema = {
   ],
   tipo_entrega: [
     (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
-    (v, f) => !['balcao', 'entrega'].includes(v) ? `Campo '${f}' deve ser 'balcao' ou 'entrega'` : null
+    (v, f) => !['Balcão', 'Entrega'].includes(v) ? `Campo '${f}' deve ser 'Balcão' ou 'Entrega'` : null
   ],
   forma_pagamento: [
     (v, f) => v === undefined || v === null || v === '' ? `Campo '${f}' é obrigatório` : null,
-    (v, f) => !['dinheiro', 'cartao', 'pix'].includes(v) ? `Campo '${f}' deve ser 'dinheiro', 'cartao' ou 'pix'` : null
+    (v, f) => !['Dinheiro', 'Cartão', 'PIX', 'Débito', 'Crédito'].includes(v) ? `Campo '${f}' deve ser 'Dinheiro', 'Cartão', 'PIX', 'Débito' ou 'Crédito'` : null
   ],
   observacoes: [
     (v, f) => v && typeof v !== 'string' ? `Campo '${f}' deve ser uma string` : null,
@@ -47,660 +41,518 @@ const pedidoSchema = {
   ]
 };
 
-// Listar pedidos com otimizações para mobile
-router.get('/api/v1/pedidos', optionalAuth, async (request, env) => {
+// Listar pedidos
+router.get('/api/v1/pedidos', async (request, env) => {
   try {
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page')) || 1;
-    const limit = parseInt(url.searchParams.get('limit')) || 20;
+    const limit = Math.min(parseInt(url.searchParams.get('limit')) || 20, 100);
+    const offset = (page - 1) * limit;
     const status = url.searchParams.get('status');
-    const tipo_entrega = url.searchParams.get('tipo_entrega');
-    const forma_pagamento = url.searchParams.get('forma_pagamento');
     const data_inicio = url.searchParams.get('data_inicio');
     const data_fim = url.searchParams.get('data_fim');
-    const search = url.searchParams.get('search');
-    const deviceType = request.headers.get('X-Device-Type') || 'desktop';
-    
-    // Otimizar limite baseado no dispositivo
-    const optimizedLimit = optimizeForMobile(limit, deviceType);
-    const offset = (page - 1) * optimizedLimit;
-    
-    // Construir query com filtros
+
+    // Construir query base
     let query = `
-      SELECT p.*, 
-             COUNT(pi.id) as total_itens,
-             SUM(pi.quantidade * pi.preco_unitario) as valor_itens
+      SELECT 
+        p.id,
+        p.numero,
+        p.cliente_nome,
+        p.cliente_telefone,
+        p.cliente_endereco,
+        p.subtotal,
+        p.taxa_entrega,
+        p.total,
+        p.forma_pagamento,
+        p.tipo_entrega,
+        p.status,
+        p.observacoes,
+        p.data_entrega,
+        p.created_at,
+        p.updated_at
       FROM pedidos p
-      LEFT JOIN pedido_itens pi ON p.id = pi.pedido_id
       WHERE 1=1
     `;
+
     const params = [];
-    
+
+    // Filtros opcionais
     if (status) {
-      query += ' AND p.status = ?';
+      query += ` AND p.status = ?`;
       params.push(status);
     }
-    
-    if (tipo_entrega) {
-      query += ' AND p.tipo_entrega = ?';
-      params.push(tipo_entrega);
-    }
-    
-    if (forma_pagamento) {
-      query += ' AND p.forma_pagamento = ?';
-      params.push(forma_pagamento);
-    }
-    
+
     if (data_inicio) {
-      query += ' AND DATE(p.created_at) >= ?';
+      query += ` AND DATE(p.created_at) >= DATE(?)`;
       params.push(data_inicio);
     }
-    
+
     if (data_fim) {
-      query += ' AND DATE(p.created_at) <= ?';
+      query += ` AND DATE(p.created_at) <= DATE(?)`;
       params.push(data_fim);
     }
-    
-    if (search) {
-      query += ' AND (p.cliente_nome LIKE ? OR p.cliente_telefone LIKE ? OR p.id LIKE ?)';
-      params.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
-    
-    // Adicionar GROUP BY, ordenação e paginação
-    query += ' GROUP BY p.id ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
-    params.push(optimizedLimit, offset);
-    
-    // Executar query principal
-    const { results: pedidos } = await env.DB.prepare(query).bind(...params).all();
-    
-    // Query para contar total
-    let countQuery = 'SELECT COUNT(DISTINCT p.id) as total FROM pedidos p WHERE 1=1';
+
+    // Ordenação e paginação
+    query += ` ORDER BY p.created_at DESC LIMIT ? OFFSET ?`;
+    params.push(limit, offset);
+
+    console.log('Query pedidos:', query);
+    console.log('Params:', params);
+
+    const { results } = await env.DB.prepare(query).bind(...params).all();
+
+    // Query para contar total de registros
+    let countQuery = `SELECT COUNT(*) as total FROM pedidos p WHERE 1=1`;
     const countParams = [];
-    
+
     if (status) {
-      countQuery += ' AND p.status = ?';
+      countQuery += ` AND p.status = ?`;
       countParams.push(status);
     }
-    
-    if (tipo_entrega) {
-      countQuery += ' AND p.tipo_entrega = ?';
-      countParams.push(tipo_entrega);
-    }
-    
-    if (forma_pagamento) {
-      countQuery += ' AND p.forma_pagamento = ?';
-      countParams.push(forma_pagamento);
-    }
-    
+
     if (data_inicio) {
-      countQuery += ' AND DATE(p.created_at) >= ?';
+      countQuery += ` AND DATE(p.created_at) >= DATE(?)`;
       countParams.push(data_inicio);
     }
-    
+
     if (data_fim) {
-      countQuery += ' AND DATE(p.created_at) <= ?';
+      countQuery += ` AND DATE(p.created_at) <= DATE(?)`;
       countParams.push(data_fim);
     }
-    
-    if (search) {
-      countQuery += ' AND (p.cliente_nome LIKE ? OR p.cliente_telefone LIKE ? OR p.id LIKE ?)';
-      countParams.push(`%${search}%`, `%${search}%`, `%${search}%`);
-    }
-    
-    const { results: [{ total }] } = await env.DB.prepare(countQuery).bind(...countParams).all();
-    
-    // Criar paginação otimizada para mobile
-    const pagination = createMobilePagination(page, optimizedLimit, total, deviceType);
-    
-    // Adaptar response para o dispositivo
-    const adaptedPedidos = adaptResponseForDevice(pedidos, deviceType, {
-      removeFields: deviceType === 'mobile' ? ['updated_at'] : [],
-      optimizeNumbers: true
-    });
-    
-    const response = {
+
+    const { results: countResults } = await env.DB.prepare(countQuery).bind(...countParams).all();
+    const total = countResults[0]?.total || 0;
+
+    // Para cada pedido, buscar os itens
+    const pedidosComItens = await Promise.all(
+      results.map(async (pedido) => {
+        const itensQuery = `
+          SELECT 
+            ip.id,
+            ip.produto_nome,
+            ip.quantidade,
+            ip.preco_unitario,
+            ip.preco_total,
+            ip.observacoes,
+            t.nome as tamanho_nome,
+            GROUP_CONCAT(s.nome) as sabores
+          FROM itens_pedido ip
+          LEFT JOIN tamanhos t ON ip.tamanho_id = t.id
+          LEFT JOIN item_sabores isa ON ip.id = isa.item_pedido_id
+          LEFT JOIN sabores s ON isa.sabor_id = s.id
+          WHERE ip.pedido_id = ?
+          GROUP BY ip.id
+        `;
+
+        const { results: itens } = await env.DB.prepare(itensQuery).bind(pedido.id).all();
+
+        return {
+          ...pedido,
+          itens: itens.map(item => ({
+            ...item,
+            sabores: item.sabores ? item.sabores.split(',') : []
+          }))
+        };
+      })
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
+    return new Response(JSON.stringify({
       success: true,
-      data: adaptedPedidos,
-      pagination,
-      filters: {
-        status,
-        tipo_entrega,
-        forma_pagamento,
-        data_inicio,
-        data_fim,
-        search
-      },
-      meta: {
+      data: pedidosComItens,
+      pagination: {
+        page,
+        limit,
         total,
-        device_optimized: true,
-        cache_strategy: deviceType === 'mobile' ? 'moderate' : 'light'
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1
       }
-    };
-    
-    // Comprimir response se necessário
-    const finalResponse = await compressResponse(response, request);
-    
-    return addCORSHeaders(new Response(JSON.stringify(finalResponse), {
+    }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': deviceType === 'mobile' ? 'public, max-age=300' : 'public, max-age=120',
-        'X-Device-Optimized': 'true'
+        ...corsHeaders
       }
-    }));
-    
+    });
+
   } catch (error) {
     console.error('Erro ao listar pedidos:', error);
-    return addCORSHeaders(new Response(JSON.stringify({
+    return new Response(JSON.stringify({
       success: false,
       error: 'Erro interno do servidor',
-      code: 'INTERNAL_ERROR'
+      message: error.message
     }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    }));
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
   }
 });
 
-// Buscar pedido por ID com detalhes completos
-router.get('/api/v1/pedidos/:id', 
-  validateUrlParams({ id: { required: true, type: 'string' } }),
-  optionalAuth,
-  withCache(180), // Cache por 3 minutos
-  async (request, env) => {
-    try {
-      const { id } = request.params;
-      const deviceType = request.headers.get('X-Device-Type') || 'desktop';
-      
-      // Buscar pedido
-      const { results: pedidoResults } = await env.DB.prepare(
-        'SELECT * FROM pedidos WHERE id = ?'
-      ).bind(id).all();
-      
-      if (pedidoResults.length === 0) {
-        return addCORSHeaders(new Response(JSON.stringify({
-          success: false,
-          error: 'Pedido não encontrado',
-          code: 'NOT_FOUND'
-        }), {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      }
-      
-      const pedido = pedidoResults[0];
-      
-      // Buscar itens do pedido com produtos
-      const { results: itens } = await env.DB.prepare(`
-        SELECT 
-          pi.*,
-          p.nome as produto_nome,
-          p.categoria as produto_categoria,
-          p.imagem as produto_imagem
-        FROM pedido_itens pi
-        JOIN produtos p ON pi.produto_id = p.id
-        WHERE pi.pedido_id = ?
-        ORDER BY pi.created_at ASC
-      `).bind(id).all();
-      
-      // Buscar sabores de cada item
-      for (let item of itens) {
-        const { results: sabores } = await env.DB.prepare(`
-          SELECT 
-            isab.*,
-            s.nome as sabor_nome,
-            s.categoria as sabor_categoria
-          FROM item_sabores isab
-          JOIN sabores s ON isab.sabor_id = s.id
-          WHERE isab.item_id = ?
-          ORDER BY s.nome ASC
-        `).bind(item.id).all();
-        
-        item.sabores = sabores;
-      }
-      
-      pedido.itens = itens;
-      
-      // Adaptar response para o dispositivo
-      const adaptedPedido = adaptResponseForDevice(pedido, deviceType, {
-        removeFields: deviceType === 'mobile' ? ['updated_at'] : [],
-        optimizeNumbers: true
+// Buscar pedido por ID
+router.get('/api/v1/pedidos/:id', async (request, env) => {
+  try {
+    const { id } = request.params;
+
+    const pedidoQuery = `
+      SELECT 
+        p.id,
+        p.numero,
+        p.cliente_nome,
+        p.cliente_telefone,
+        p.cliente_endereco,
+        p.subtotal,
+        p.taxa_entrega,
+        p.total,
+        p.forma_pagamento,
+        p.tipo_entrega,
+        p.status,
+        p.observacoes,
+        p.data_entrega,
+        p.created_at,
+        p.updated_at
+      FROM pedidos p
+      WHERE p.id = ?
+    `;
+
+    const { results } = await env.DB.prepare(pedidoQuery).bind(id).all();
+
+    if (results.length === 0) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Pedido não encontrado'
+      }), {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
       });
-      
-      const response = {
-        success: true,
-        data: adaptedPedido,
-        meta: {
-          device_optimized: true,
-          cached: true,
-          total_itens: itens.length
+    }
+
+    const pedido = results[0];
+
+    // Buscar itens do pedido
+    const itensQuery = `
+      SELECT 
+        ip.id,
+        ip.produto_nome,
+        ip.quantidade,
+        ip.preco_unitario,
+        ip.preco_total,
+        ip.observacoes,
+        t.nome as tamanho_nome,
+        GROUP_CONCAT(s.nome) as sabores
+      FROM itens_pedido ip
+      LEFT JOIN tamanhos t ON ip.tamanho_id = t.id
+      LEFT JOIN item_sabores isa ON ip.id = isa.item_pedido_id
+      LEFT JOIN sabores s ON isa.sabor_id = s.id
+      WHERE ip.pedido_id = ?
+      GROUP BY ip.id
+    `;
+
+    const { results: itens } = await env.DB.prepare(itensQuery).bind(id).all();
+
+    const pedidoCompleto = {
+      ...pedido,
+      itens: itens.map(item => ({
+        ...item,
+        sabores: item.sabores ? item.sabores.split(',') : []
+      }))
+    };
+
+    return new Response(JSON.stringify({
+      success: true,
+      data: pedidoCompleto
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar pedido:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Erro interno do servidor',
+      message: error.message
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
+  }
+});
+
+// Criar pedido
+router.post('/api/v1/pedidos', async (request, env) => {
+  try {
+    const data = await request.json();
+    
+    // Gerar número do pedido
+    const { results: ultimoPedido } = await env.DB.prepare(
+      'SELECT MAX(numero) as ultimo_numero FROM pedidos'
+    ).all();
+    
+    const numeroProximoPedido = (ultimoPedido[0]?.ultimo_numero || 0) + 1;
+
+    // Calcular totais
+    let subtotal = 0;
+    const itensProcessados = [];
+
+    for (const item of data.itens) {
+      // Buscar preço do produto
+      const { results: produto } = await env.DB.prepare(
+        'SELECT preco FROM produtos WHERE id = ?'
+      ).bind(item.produto_id).all();
+
+      if (produto.length === 0) {
+        throw new Error(`Produto com ID ${item.produto_id} não encontrado`);
+      }
+
+      const precoUnitario = produto[0].preco;
+      const precoTotal = precoUnitario * item.quantidade;
+      subtotal += precoTotal;
+
+      itensProcessados.push({
+        ...item,
+        preco_unitario: precoUnitario,
+        preco_total: precoTotal
+      });
+    }
+
+    const taxaEntrega = data.tipo_entrega === 'Entrega' ? 5.00 : 0;
+    const total = subtotal + taxaEntrega;
+
+    // Inserir pedido
+    const insertPedidoQuery = `
+      INSERT INTO pedidos (
+        numero, cliente_nome, cliente_telefone, cliente_endereco,
+        subtotal, taxa_entrega, total, forma_pagamento, tipo_entrega,
+        observacoes, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pendente')
+    `;
+
+    const { meta: pedidoMeta } = await env.DB.prepare(insertPedidoQuery).bind(
+      numeroProximoPedido,
+      data.cliente_nome,
+      data.cliente_telefone,
+      data.cliente_endereco || null,
+      subtotal,
+      taxaEntrega,
+      total,
+      data.forma_pagamento,
+      data.tipo_entrega,
+      data.observacoes || null
+    ).run();
+
+    const pedidoId = pedidoMeta.last_row_id;
+
+    // Inserir itens do pedido
+    for (const item of itensProcessados) {
+      const insertItemQuery = `
+        INSERT INTO itens_pedido (
+          pedido_id, produto_id, produto_nome, tamanho_id,
+          quantidade, preco_unitario, preco_total, observacoes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      // Buscar nome do produto
+      const { results: produtoNome } = await env.DB.prepare(
+        'SELECT nome FROM produtos WHERE id = ?'
+      ).bind(item.produto_id).all();
+
+      const { meta: itemMeta } = await env.DB.prepare(insertItemQuery).bind(
+        pedidoId,
+        item.produto_id,
+        produtoNome[0].nome,
+        item.tamanho_id || null,
+        item.quantidade,
+        item.preco_unitario,
+        item.preco_total,
+        item.observacoes || null
+      ).run();
+
+      // Inserir sabores do item (se houver)
+      if (item.sabores && item.sabores.length > 0) {
+        for (const saborId of item.sabores) {
+          // Buscar nome do sabor
+          const { results: saborNome } = await env.DB.prepare(
+            'SELECT nome FROM sabores WHERE id = ?'
+          ).bind(saborId).all();
+
+          await env.DB.prepare(
+            'INSERT INTO item_sabores (item_pedido_id, sabor_id, sabor_nome) VALUES (?, ?, ?)'
+          ).bind(itemMeta.last_row_id, saborId, saborNome[0]?.nome || 'Sabor não encontrado').run();
         }
-      };
+      }
+    }
+
+    // Buscar o pedido completo criado para retornar
+    const { results: pedidoCompleto } = await env.DB.prepare(`
+      SELECT 
+        p.id,
+        p.numero,
+        p.cliente_nome,
+        p.cliente_telefone,
+        p.cliente_endereco,
+        p.subtotal,
+        p.taxa_entrega,
+        p.total,
+        p.forma_pagamento,
+        p.tipo_entrega,
+        p.status,
+        p.observacoes,
+        p.data_entrega,
+        p.created_at
+      FROM pedidos p
+      WHERE p.id = ?
+    `).bind(pedidoId).all();
+
+    // Buscar itens do pedido
+    const { results: itensPedido } = await env.DB.prepare(`
+      SELECT 
+        ip.id,
+        ip.produto_id,
+        ip.produto_nome,
+        ip.tamanho_id,
+        ip.quantidade,
+        ip.preco_unitario,
+        ip.preco_total,
+        ip.observacoes
+      FROM itens_pedido ip
+      WHERE ip.pedido_id = ?
+    `).bind(pedidoId).all();
+
+    // Buscar sabores de cada item
+    for (let item of itensPedido) {
+      const { results: sabores } = await env.DB.prepare(`
+        SELECT sabor_id, sabor_nome
+        FROM item_sabores
+        WHERE item_pedido_id = ?
+      `).bind(item.id).all();
       
-      const finalResponse = await compressResponse(response, request);
-      
-      return addCORSHeaders(new Response(JSON.stringify(finalResponse), {
-        status: 200,
+      item.sabores = sabores.map(s => ({
+        id: s.sabor_id,
+        nome: s.sabor_nome
+      }));
+    }
+
+    const pedidoRetorno = {
+      ...pedidoCompleto[0],
+      numeroPedido: pedidoCompleto[0].numero,
+      cliente: {
+        nome: pedidoCompleto[0].cliente_nome,
+        telefone: pedidoCompleto[0].cliente_telefone,
+        endereco: pedidoCompleto[0].cliente_endereco
+      },
+      formaPagamento: pedidoCompleto[0].forma_pagamento,
+      tipoEntrega: pedidoCompleto[0].tipo_entrega,
+      itens: itensPedido
+    };
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Pedido criado com sucesso',
+      data: pedidoRetorno
+    }), {
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao criar pedido:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Erro interno do servidor',
+      message: error.message
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
+  }
+});
+
+// Deletar pedido
+router.delete('/api/v1/pedidos/:id', async (request, env) => {
+  try {
+    const { id } = request.params;
+    
+    // Validar ID
+    if (!id || isNaN(parseInt(id))) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'ID inválido'
+      }), {
+        status: 400,
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=180',
-          'X-Device-Optimized': 'true'
+          ...corsHeaders
         }
-      }));
-      
-    } catch (error) {
-      console.error('Erro ao buscar pedido:', error);
-      return addCORSHeaders(new Response(JSON.stringify({
+      });
+    }
+    
+    // Verificar se pedido existe
+    const { results: pedidoExiste } = await env.DB.prepare(
+      'SELECT id FROM pedidos WHERE id = ?'
+    ).bind(id).all();
+    
+    if (pedidoExiste.length === 0) {
+      return new Response(JSON.stringify({
         success: false,
-        error: 'Erro interno do servidor',
-        code: 'INTERNAL_ERROR'
+        error: 'Pedido não encontrado'
       }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }));
-    }
-  }
-);
-
-// Criar novo pedido
-router.post('/api/v1/pedidos',
-  validateRequest(pedidoSchema),
-  async (request, env) => {
-    try {
-      const data = request.validatedData;
-      const now = new Date().toISOString();
-      
-      // Calcular total do pedido
-      let total_pedido = 0;
-      for (const item of data.itens) {
-        let total_item = item.quantidade * item.preco_unitario;
-        
-        // Adicionar preço dos sabores
-        if (item.sabores) {
-          for (const sabor of item.sabores) {
-            total_item += sabor.preco_adicional || 0;
-          }
-        }
-        
-        total_pedido += total_item;
-      }
-      
-      // Criar pedido
-      const { results: pedidoResults } = await env.DB.prepare(`
-        INSERT INTO pedidos (
-          cliente_nome, cliente_telefone, cliente_endereco,
-          tipo_entrega, forma_pagamento, observacoes,
-          total, status, created_at, updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        RETURNING *
-      `).bind(
-        data.cliente_nome,
-        data.cliente_telefone,
-        data.cliente_endereco || null,
-        data.tipo_entrega,
-        data.forma_pagamento,
-        data.observacoes || null,
-        total_pedido,
-        'pendente',
-        now,
-        now
-      ).all();
-      
-      const novoPedido = pedidoResults[0];
-      
-      // Criar itens do pedido
-      const itensCompletos = [];
-      for (const item of data.itens) {
-        const { results: itemResults } = await env.DB.prepare(`
-          INSERT INTO pedido_itens (
-            pedido_id, produto_id, quantidade, preco_unitario, observacoes, created_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?)
-          RETURNING *
-        `).bind(
-          novoPedido.id,
-          item.produto_id,
-          item.quantidade,
-          item.preco_unitario,
-          item.observacoes || null,
-          now
-        ).all();
-        
-        const novoItem = itemResults[0];
-        
-        // Adicionar sabores do item
-        if (item.sabores && item.sabores.length > 0) {
-          const saboresCompletos = [];
-          for (const sabor of item.sabores) {
-            await env.DB.prepare(`
-              INSERT INTO item_sabores (item_id, sabor_id, preco_adicional, created_at)
-              VALUES (?, ?, ?, ?)
-            `).bind(
-              novoItem.id,
-              sabor.sabor_id,
-              sabor.preco_adicional || 0,
-              now
-            ).run();
-            
-            saboresCompletos.push({
-              sabor_id: sabor.sabor_id,
-              preco_adicional: sabor.preco_adicional || 0
-            });
-          }
-          novoItem.sabores = saboresCompletos;
-        }
-        
-        itensCompletos.push(novoItem);
-      }
-      
-      novoPedido.itens = itensCompletos;
-      
-      // Invalidar cache relacionado
-      await invalidateCache(env, 'pedidos:*');
-      
-      // Adicionar à fila de sincronização
-      await env.DB.prepare(`
-        INSERT INTO sync_queue (table_name, record_id, operation, data, created_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(
-        'pedidos',
-        novoPedido.id,
-        'create',
-        JSON.stringify(novoPedido),
-        now
-      ).run();
-      
-      return addCORSHeaders(new Response(JSON.stringify({
-        success: true,
-        data: novoPedido,
-        message: 'Pedido criado com sucesso'
-      }), {
-        status: 201,
-        headers: { 'Content-Type': 'application/json' }
-      }));
-      
-    } catch (error) {
-      console.error('Erro ao criar pedido:', error);
-      return addCORSHeaders(new Response(JSON.stringify({
-        success: false,
-        error: 'Erro interno do servidor',
-        code: 'INTERNAL_ERROR'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }));
-    }
-  }
-);
-
-// Atualizar status do pedido
-router.put('/api/v1/pedidos/:id/status',
-  validateUrlParams({ id: { required: true, type: 'string' } }),
-  authenticateRequest,
-  validateRequest({
-    status: { 
-      required: true, 
-      type: 'enum', 
-      values: ['pendente', 'preparando', 'pronto', 'entregue', 'cancelado'] 
-    }
-  }),
-  async (request, env) => {
-    try {
-      const { id } = request.params;
-      const { status } = request.validatedData;
-      const now = new Date().toISOString();
-      
-      // Verificar se o pedido existe
-      const { results: existing } = await env.DB.prepare(
-        'SELECT * FROM pedidos WHERE id = ?'
-      ).bind(id).all();
-      
-      if (existing.length === 0) {
-        return addCORSHeaders(new Response(JSON.stringify({
-          success: false,
-          error: 'Pedido não encontrado',
-          code: 'NOT_FOUND'
-        }), {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      }
-      
-      // Atualizar status
-      const { results } = await env.DB.prepare(`
-        UPDATE pedidos SET status = ?, updated_at = ? WHERE id = ?
-        RETURNING *
-      `).bind(status, now, id).all();
-      
-      const pedidoAtualizado = results[0];
-      
-      // Invalidar cache relacionado
-      await invalidateCache(env, 'pedidos:*');
-      await invalidateCache(env, `pedido:${id}`);
-      
-      // Adicionar à fila de sincronização
-      await env.DB.prepare(`
-        INSERT INTO sync_queue (table_name, record_id, operation, data, created_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(
-        'pedidos',
-        id,
-        'update',
-        JSON.stringify({ id, status, updated_at: now }),
-        now
-      ).run();
-      
-      return addCORSHeaders(new Response(JSON.stringify({
-        success: true,
-        data: pedidoAtualizado,
-        message: `Status do pedido atualizado para: ${status}`
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }));
-      
-    } catch (error) {
-      console.error('Erro ao atualizar status do pedido:', error);
-      return addCORSHeaders(new Response(JSON.stringify({
-        success: false,
-        error: 'Erro interno do servidor',
-        code: 'INTERNAL_ERROR'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }));
-    }
-  }
-);
-
-// Cancelar pedido
-router.delete('/api/v1/pedidos/:id',
-  validateUrlParams({ id: { required: true, type: 'string' } }),
-  authenticateRequest,
-  async (request, env) => {
-    try {
-      const { id } = request.params;
-      const now = new Date().toISOString();
-      
-      // Verificar se o pedido existe e pode ser cancelado
-      const { results: existing } = await env.DB.prepare(
-        'SELECT * FROM pedidos WHERE id = ?'
-      ).bind(id).all();
-      
-      if (existing.length === 0) {
-        return addCORSHeaders(new Response(JSON.stringify({
-          success: false,
-          error: 'Pedido não encontrado',
-          code: 'NOT_FOUND'
-        }), {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      }
-      
-      const pedido = existing[0];
-      
-      if (['entregue', 'cancelado'].includes(pedido.status)) {
-        return addCORSHeaders(new Response(JSON.stringify({
-          success: false,
-          error: 'Pedido não pode ser cancelado',
-          code: 'CANNOT_CANCEL',
-          current_status: pedido.status
-        }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        }));
-      }
-      
-      // Cancelar pedido
-      const { results } = await env.DB.prepare(`
-        UPDATE pedidos SET status = 'cancelado', updated_at = ? WHERE id = ?
-        RETURNING *
-      `).bind(now, id).all();
-      
-      const pedidoCancelado = results[0];
-      
-      // Invalidar cache relacionado
-      await invalidateCache(env, 'pedidos:*');
-      await invalidateCache(env, `pedido:${id}`);
-      
-      // Adicionar à fila de sincronização
-      await env.DB.prepare(`
-        INSERT INTO sync_queue (table_name, record_id, operation, data, created_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(
-        'pedidos',
-        id,
-        'update',
-        JSON.stringify({ id, status: 'cancelado', updated_at: now }),
-        now
-      ).run();
-      
-      return addCORSHeaders(new Response(JSON.stringify({
-        success: true,
-        data: pedidoCancelado,
-        message: 'Pedido cancelado com sucesso'
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }));
-      
-    } catch (error) {
-      console.error('Erro ao cancelar pedido:', error);
-      return addCORSHeaders(new Response(JSON.stringify({
-        success: false,
-        error: 'Erro interno do servidor',
-        code: 'INTERNAL_ERROR'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }));
-    }
-  }
-);
-
-// Estatísticas de pedidos
-router.get('/api/v1/pedidos/stats', 
-  authenticateRequest,
-  withCache(300), // Cache por 5 minutos
-  async (request, env) => {
-    try {
-      const url = new URL(request.url);
-      const periodo = url.searchParams.get('periodo') || 'hoje'; // hoje, semana, mes, ano
-      
-      let dataInicio;
-      const agora = new Date();
-      
-      switch (periodo) {
-        case 'hoje':
-          dataInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
-          break;
-        case 'semana':
-          dataInicio = new Date(agora.getTime() - 7 * 24 * 60 * 60 * 1000);
-          break;
-        case 'mes':
-          dataInicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
-          break;
-        case 'ano':
-          dataInicio = new Date(agora.getFullYear(), 0, 1);
-          break;
-        default:
-          dataInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
-      }
-      
-      // Estatísticas gerais
-      const { results: stats } = await env.DB.prepare(`
-        SELECT 
-          COUNT(*) as total_pedidos,
-          SUM(CASE WHEN status = 'pendente' THEN 1 ELSE 0 END) as pendentes,
-          SUM(CASE WHEN status = 'preparando' THEN 1 ELSE 0 END) as preparando,
-          SUM(CASE WHEN status = 'pronto' THEN 1 ELSE 0 END) as prontos,
-          SUM(CASE WHEN status = 'entregue' THEN 1 ELSE 0 END) as entregues,
-          SUM(CASE WHEN status = 'cancelado' THEN 1 ELSE 0 END) as cancelados,
-          SUM(total) as faturamento_total,
-          AVG(total) as ticket_medio
-        FROM pedidos 
-        WHERE created_at >= ?
-      `).bind(dataInicio.toISOString()).all();
-      
-      // Pedidos por forma de pagamento
-      const { results: pagamentos } = await env.DB.prepare(`
-        SELECT 
-          forma_pagamento,
-          COUNT(*) as quantidade,
-          SUM(total) as valor_total
-        FROM pedidos 
-        WHERE created_at >= ?
-        GROUP BY forma_pagamento
-      `).bind(dataInicio.toISOString()).all();
-      
-      // Pedidos por tipo de entrega
-      const { results: entregas } = await env.DB.prepare(`
-        SELECT 
-          tipo_entrega,
-          COUNT(*) as quantidade,
-          SUM(total) as valor_total
-        FROM pedidos 
-        WHERE created_at >= ?
-        GROUP BY tipo_entrega
-      `).bind(dataInicio.toISOString()).all();
-      
-      const response = {
-        success: true,
-        data: {
-          periodo,
-          data_inicio: dataInicio.toISOString(),
-          resumo: stats[0],
-          por_pagamento: pagamentos,
-          por_entrega: entregas
-        },
-        meta: {
-          cached: true,
-          generated_at: new Date().toISOString()
-        }
-      };
-      
-      return addCORSHeaders(new Response(JSON.stringify(response), {
-        status: 200,
+        status: 404,
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=300'
+          ...corsHeaders
         }
-      }));
-      
-    } catch (error) {
-      console.error('Erro ao buscar estatísticas:', error);
-      return addCORSHeaders(new Response(JSON.stringify({
-        success: false,
-        error: 'Erro interno do servidor',
-        code: 'INTERNAL_ERROR'
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      }));
+      });
     }
+    
+    // Como o schema tem ON DELETE CASCADE, só precisamos deletar o pedido
+    // Os itens e sabores serão deletados automaticamente
+    await env.DB.prepare('DELETE FROM pedidos WHERE id = ?').bind(id).run();
+    
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Pedido removido com sucesso'
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
+
+  } catch (error) {
+    console.error('Erro ao deletar pedido:', error);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'Erro interno do servidor',
+      message: error.message
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        ...corsHeaders
+      }
+    });
   }
-);
+});
 
 export default router;
