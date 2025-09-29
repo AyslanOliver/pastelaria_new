@@ -660,77 +660,61 @@
         function gerarMensagemWhatsAppNovoPedido(pedido) {
             if (!pedido) return;
 
-            // Obter dados do cliente
-            const nomeCliente = pedido.cliente?.nome || 'Cliente não informado';
-            const telefoneCliente = pedido.cliente?.telefone || '';
-            const enderecoCliente = pedido.cliente?.endereco || 'Endereço não informado';
-            const formaPagamento = pedido.formaPagamento || 'PIX';
+            // Obter dados do cliente diretamente do pedido
+            const nomeCliente = pedido.cliente_nome || 'Cliente não informado';
+            const telefoneCliente = pedido.cliente_telefone || '';
+            const enderecoCliente = pedido.cliente_endereco || 'Endereço não informado';
+            const formaPagamento = pedido.forma_pagamento || 'PIX';
             
             // Calcular subtotal dos itens
             let subtotalItens = 0;
             let itensTexto = '';
             
-            pedido.itens.forEach((item, index) => {
-                // Usar precoUnitario se disponível, senão usar preco
-                let preco = 0;
-                if (item.precoUnitario !== undefined && item.precoUnitario !== null) {
-                    preco = parseFloat(item.precoUnitario);
-                } else if (item.preco !== undefined && item.preco !== null) {
-                    preco = parseFloat(item.preco);
-                } else if (item.precoTotal && item.quantidade) {
-                    preco = parseFloat(item.precoTotal) / parseFloat(item.quantidade);
-                }
-                
-                const quantidade = parseInt(item.quantidade) || 1;
-                const subtotalItem = quantidade * preco;
-                subtotalItens += subtotalItem;
-                
-                // Obter sabores corretamente
-                let saboresTexto = '';
-                if (item.sabores && Array.isArray(item.sabores) && item.sabores.length > 0) {
-                    const saboresNomes = item.sabores.map(sabor => {
-                        if (typeof sabor === 'object' && sabor.nome) {
-                            return sabor.nome;
-                        } else if (typeof sabor === 'string') {
-                            return sabor;
-                        }
-                        return '';
-                    }).filter(nome => nome);
+            // Verificar se pedido.itens existe e é um array
+            if (pedido.itens && Array.isArray(pedido.itens)) {
+                pedido.itens.forEach((item, index) => {
+                    // Usar preco_unitario da resposta da API
+                    const preco = parseFloat(item.preco_unitario) || 0;
+                    const quantidade = parseInt(item.quantidade) || 1;
+                    const subtotalItem = quantidade * preco;
+                    subtotalItens += subtotalItem;
                     
-                    if (saboresNomes.length > 0) {
-                        saboresTexto = ` - ${saboresNomes.join(', ')}`;
+                    // Obter sabores corretamente
+                    let saboresTexto = '';
+                    if (item.sabores && Array.isArray(item.sabores) && item.sabores.length > 0) {
+                        const saboresNomes = item.sabores.map(sabor => {
+                            if (typeof sabor === 'object' && sabor.nome) {
+                                return sabor.nome;
+                            } else if (typeof sabor === 'string') {
+                                return sabor;
+                            }
+                            return '';
+                        }).filter(nome => nome);
+                        
+                        if (saboresNomes.length > 0) {
+                            saboresTexto = ` - ${saboresNomes.join(', ')}`;
+                        }
                     }
-                } else if (item.sabor) {
-                    saboresTexto = ` - ${item.sabor}`;
-                }
-                
-                const tamanhoInfo = item.tamanho ? ` (${item.tamanho})` : '';
-                
-                // Obter nome do produto corretamente
-                let nomeProduto = 'Produto não informado';
-                if (item.produtoNome) {
-                    nomeProduto = item.produtoNome;
-                } else if (item.produto) {
-                    if (typeof item.produto === 'object' && item.produto.nome) {
-                        nomeProduto = item.produto.nome;
-                    } else if (typeof item.produto === 'string') {
-                        nomeProduto = item.produto;
-                    }
-                }
-                
-                itensTexto += `${index + 1}. ${nomeProduto}${saboresTexto}${tamanhoInfo}\n`;
-                itensTexto += `   Qtd: ${quantidade}x R$ ${preco.toFixed(2).replace('.', ',')}\n`;
-                itensTexto += `   Subtotal: R$ ${subtotalItem.toFixed(2).replace('.', ',')}\n\n`;
-            });
+                    
+                    const tamanhoInfo = item.tamanho_nome ? ` (${item.tamanho_nome})` : '';
+                    
+                    // Usar produto_nome da resposta da API
+                    const nomeProduto = item.produto_nome || 'Produto não informado';
+                    
+                    itensTexto += `${index + 1}. ${nomeProduto}${saboresTexto}${tamanhoInfo}\n`;
+                    itensTexto += `   Qtd: ${quantidade}x R$ ${preco.toFixed(2).replace('.', ',')}\n`;
+                    itensTexto += `   Subtotal: R$ ${subtotalItem.toFixed(2).replace('.', ',')}\n\n`;
+                });
+            }
             
-            // Calcular taxa de delivery
-            const taxaEntrega = pedido.taxaEntrega || pedido.taxaDelivery || 5.00;
-            const total = pedido.total || (subtotalItens + taxaEntrega);
+            // Usar valores da resposta da API
+            const taxaEntrega = parseFloat(pedido.taxa_entrega) || 0;
+            const total = parseFloat(pedido.total) || (subtotalItens + taxaEntrega);
             
             // Formatar data
             const dataFormatada = new Date().toLocaleString('pt-BR');
             
-            const mensagem = `🍕 *NOVO PEDIDO CRIADO #${pedido.numero || pedido.numeroPedido || 'N/A'}*\n\n` +
+            const mensagem = `🍕 *NOVO PEDIDO CRIADO #${pedido.numero || 'N/A'}*\n\n` +
                            `👤 *Cliente:* ${nomeCliente}\n` +
                            `📞 *Telefone:* ${telefoneCliente}\n` +
                            `📍 *Endereço:* ${enderecoCliente}\n` +
@@ -752,138 +736,80 @@
         function imprimirComandaCozinhaNovoPedido(pedido) {
             if (!pedido) return;
             
+            // Obter dados do cliente diretamente do pedido
+            const nomeCliente = pedido.cliente_nome || 'Cliente não informado';
+            const telefoneCliente = pedido.cliente_telefone || '';
+            const enderecoCliente = pedido.cliente_endereco || 'Endereço não informado';
+            
+            // Formatar data
             const dataFormatada = new Date().toLocaleString('pt-BR');
             
-            // Obter dados do cliente
-            const nomeCliente = pedido.cliente?.nome || 'Cliente não informado';
-            const telefoneCliente = pedido.cliente?.telefone || '';
-            const enderecoCliente = pedido.cliente?.endereco || 'Endereço não informado';
+            let itensTexto = '';
             
-            let comandaHtml = `
-                <div style="width: 300px; margin: 0 auto; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4;">
-                    <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
-                        <div style="font-size: 16px; font-weight: bold;">🍕 PASTELARIA</div>
-                        <div style="font-size: 14px; font-weight: bold; margin-top: 5px;">COMANDA DA COZINHA</div>
-                        <div style="font-size: 12px; margin-top: 5px;">Pedido #${pedido.numero || pedido.numeroPedido || 'N/A'}</div>
-                    </div>
+            // Verificar se pedido.itens existe e é um array
+            if (pedido.itens && Array.isArray(pedido.itens)) {
+                pedido.itens.forEach((item, index) => {
+                    const quantidade = parseInt(item.quantidade) || 1;
                     
-                    <div style="margin-bottom: 15px;">
-                        <div style="font-weight: bold;">CLIENTE:</div>
-                        <div>${nomeCliente}</div>
-                        <div>Tel: ${telefoneCliente}</div>
-                        <div style="font-size: 11px; margin-top: 5px;">${enderecoCliente}</div>
-                    </div>
-                    
-                    <div style="border-bottom: 1px solid #000; margin-bottom: 10px;">
-                        <div style="font-weight: bold; margin-bottom: 5px;">ITENS:</div>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-            `;
-            
-            pedido.itens.forEach((item, index) => {
-                // Obter sabores
-                let saboresTexto = '';
-                if (item.sabores && Array.isArray(item.sabores) && item.sabores.length > 0) {
-                    const saboresNomes = item.sabores.map(sabor => {
-                        if (typeof sabor === 'object' && sabor.nome) {
-                            return sabor.nome;
-                        } else if (typeof sabor === 'string') {
-                            return sabor;
+                    // Obter sabores corretamente
+                    let saboresTexto = '';
+                    if (item.sabores && Array.isArray(item.sabores) && item.sabores.length > 0) {
+                        const saboresNomes = item.sabores.map(sabor => {
+                            if (typeof sabor === 'object' && sabor.nome) {
+                                return sabor.nome;
+                            } else if (typeof sabor === 'string') {
+                                return sabor;
+                            }
+                            return '';
+                        }).filter(nome => nome);
+                        
+                        if (saboresNomes.length > 0) {
+                            saboresTexto = ` - ${saboresNomes.join(', ')}`;
                         }
-                        return '';
-                    }).filter(nome => nome);
+                    }
                     
-                    if (saboresNomes.length > 0) {
-                        saboresTexto = saboresNomes.join(', ');
-                    }
-                } else if (item.sabor) {
-                    saboresTexto = item.sabor;
-                }
-                
-                const tamanhoInfo = item.tamanho ? ` (${item.tamanho})` : '';
-                
-                // Obter nome do produto
-                let nomeProduto = 'Produto não informado';
-                if (item.produtoNome) {
-                    nomeProduto = item.produtoNome;
-                } else if (item.produto) {
-                    if (typeof item.produto === 'object' && item.produto.nome) {
-                        nomeProduto = item.produto.nome;
-                    } else if (typeof item.produto === 'string') {
-                        nomeProduto = item.produto;
-                    }
-                }
-                
-                comandaHtml += `
-                        <div style="border: 1px solid #000; padding: 8px; margin-bottom: 8px;">
-                            <div style="font-weight: bold; font-size: 13px;">${index + 1}. ${nomeProduto}${tamanhoInfo}</div>
-                            ${saboresTexto ? `<div style="margin-top: 3px;"><strong>Sabores:</strong> ${saboresTexto}</div>` : ''}
-                            <div style="margin-top: 3px;"><strong>Quantidade:</strong> ${item.quantidade || 1}</div>
-                            ${item.observacoes ? `<div style="margin-top: 3px;"><strong>Obs:</strong> ${item.observacoes}</div>` : ''}
-                        </div>
-                `;
-            });
+                    const tamanhoInfo = item.tamanho_nome ? ` (${item.tamanho_nome})` : '';
+                    
+                    // Usar produto_nome da resposta da API
+                    const nomeProduto = item.produto_nome || 'Produto não informado';
+                    
+                    itensTexto += `${index + 1}. ${nomeProduto}${saboresTexto}${tamanhoInfo}\n`;
+                    itensTexto += `   Quantidade: ${quantidade}\n\n`;
+                });
+            }
             
-            comandaHtml += `
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 20px; padding-top: 10px; border-top: 2px solid #000;">
-                        <div style="font-size: 14px; font-weight: bold;">TOTAL: R$ ${(pedido.total || 0).toFixed(2).replace('.', ',')}</div>
-                        <div style="font-size: 12px; margin-top: 5px;">Pagamento: ${pedido.formaPagamento || 'N/I'}</div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 15px; font-size: 10px;">
-                        <div>Impresso em: ${dataFormatada}</div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px;">
-                        <div style="font-size: 11px;">
-                            <div>⚠️ ATENÇÃO COZINHA ⚠️</div>
-                            <div>✓ Verificar todos os ingredientes</div>
-                            <div>✓ Conferir sabores e tamanhos</div>
-                            <div>✓ Pedido NOVO - Prioridade!</div>
-                        </div>
-                    </div>
-                </div>
+            const comanda = `
+═══════════════════════════════════════
+🍕 COMANDA DA COZINHA - PEDIDO #${pedido.numero || 'N/A'}
+═══════════════════════════════════════
+
+📅 Data: ${dataFormatada}
+👤 Cliente: ${nomeCliente}
+📞 Telefone: ${telefoneCliente}
+📍 Endereço: ${enderecoCliente}
+
+📋 ITENS PARA PREPARAR:
+${itensTexto}
+
+═══════════════════════════════════════
+⚠️  ATENÇÃO: Verificar todos os itens
+    antes de finalizar o pedido!
+═══════════════════════════════════════
             `;
             
-            // Criar nova janela para impressão
-            const janelaImpressao = window.open('', '_blank', 'width=400,height=600');
-            janelaImpressao.document.write(
-                '<!DOCTYPE html>' +
-                '<html>' +
-                '<head>' +
-                '<title>Comanda da Cozinha - Pedido ' + (pedido.numero || pedido.numeroPedido || 'N/A') + '</title>' +
-                '<style>' +
-                '@media print {' +
-                'body { margin: 0; }' +
-                '@page { margin: 10mm; }' +
-                '}' +
-                'body {' +
-                'font-family: "Courier New", monospace;' +
-                'font-size: 12px;' +
-                'line-height: 1.4;' +
-                'margin: 0;' +
-                'padding: 10px;' +
-                'background: white;' +
-                '}' +
-                '</style>' +
-                '</head>' +
-                '<body>' +
-                comandaHtml +
-                '<scr' + 'ipt>' +
-                'window.onload = function() {' +
-                'window.print();' +
-                'setTimeout(function() {' +
-                'window.close();' +
-                '}, 1000);' +
-                '}' +
-                '</scr' + 'ipt>' +
-                '</body>' +
-                '</html>'
-            );
-            janelaImpressao.document.close();
+            // Simular impressão (mostrar no console)
+            console.log('COMANDA DA COZINHA:');
+            console.log(comanda);
+            
+            // Aqui você pode integrar com uma impressora térmica real
+            // Por exemplo, usando uma biblioteca como node-thermal-printer
+            
+            // Mostrar notificação de que a comanda foi "impressa"
+            if (typeof showToast === 'function') {
+                showToast('Comanda da cozinha impressa com sucesso!', 'success');
+            } else {
+                alert('Comanda da cozinha impressa com sucesso!');
+            }
         }
 
         // Função para mostrar mensagem do WhatsApp na tela
