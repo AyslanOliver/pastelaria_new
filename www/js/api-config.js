@@ -95,17 +95,30 @@ function getApiBaseUrl() {
     );
     
     if (isMobile) {
-        console.log('📱 Detectado dispositivo móvel - tentando produção primeiro');
+        console.log('📱 Detectado dispositivo móvel - usando produção');
         console.log('🌐 URL da API (produção):', window.API_CONFIG.BASE_URL_PRODUCTION);
         const url = window.API_CONFIG.BASE_URL_PRODUCTION;
         saveApiConfig(url); // Salva para próximas vezes
         return url;
     } else {
-        console.log('💻 Detectado ambiente browser - usando produção para testes');
-        console.log('🌐 URL da API:', window.API_CONFIG.BASE_URL_PRODUCTION);
-        const url = window.API_CONFIG.BASE_URL_PRODUCTION;
-        saveApiConfig(url);
-        return url;
+        // Browser - detecta se está rodando localmente
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1' ||
+                           window.location.hostname === '0.0.0.0';
+        
+        if (isLocalhost) {
+            console.log('💻 Detectado ambiente local - usando API local');
+            console.log('🌐 URL da API:', window.API_CONFIG.BASE_URL_LOCAL);
+            const url = window.API_CONFIG.BASE_URL_LOCAL;
+            saveApiConfig(url);
+            return url;
+        } else {
+            console.log('💻 Detectado ambiente browser remoto - usando produção');
+            console.log('🌐 URL da API:', window.API_CONFIG.BASE_URL_PRODUCTION);
+            const url = window.API_CONFIG.BASE_URL_PRODUCTION;
+            saveApiConfig(url);
+            return url;
+        }
     }
 }
 

@@ -322,6 +322,81 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Configurações da API -->
+                        <div class="col-lg-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-server"></i> Configurações da API
+                                    </h6>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="testarConexaoAPI()">
+                                            <i class="fas fa-wifi"></i> Testar Conexão
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="resetarConfigAPI()">
+                                            <i class="fas fa-undo"></i> Resetar
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="apiUrl" class="form-label">URL da API</label>
+                                                <select class="form-select" id="apiUrl" onchange="selecionarUrlAPI()">
+                                                    <option value="auto">🔄 Detecção Automática</option>
+                                                    <option value="http://localhost:3000/api/v1">🏠 Local (localhost:3000)</option>
+                                                    <option value="http://192.168.18.104:3000/api/v1">🌐 Rede Local (192.168.18.104)</option>
+                                                    <option value="http://10.0.2.2:3000/api/v1">📱 Emulador Android</option>
+                                                    <option value="https://pastelaria-api.ayslano37.workers.dev/api/v1">☁️ Produção (Cloudflare)</option>
+                                                    <option value="custom">⚙️ URL Personalizada</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3" id="customUrlDiv" style="display: none;">
+                                                <label for="customApiUrl" class="form-label">URL Personalizada</label>
+                                                <div class="input-group">
+                                                    <input type="url" class="form-control" id="customApiUrl" placeholder="https://sua-api.com/api/v1">
+                                                    <button class="btn btn-outline-primary" type="button" id="aplicarUrlPersonalizada" onclick="aplicarUrlPersonalizada()">
+                                                        <i class="fas fa-check"></i> Aplicar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Status da Conexão</label>
+                                                <div id="statusConexao" class="alert alert-secondary">
+                                                    <i class="fas fa-question-circle"></i> Não testado
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">URL Atual</label>
+                                                <div class="form-control-plaintext bg-light p-2 rounded" id="urlAtual">
+                                                    Carregando...
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="salvarConfigAPI" checked>
+                                                    <label class="form-check-label" for="salvarConfigAPI">
+                                                        Salvar configuração automaticamente
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Dica:</strong> A detecção automática escolhe a melhor URL baseada no seu ambiente (móvel, emulador ou browser).
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- /.container-fluid -->
@@ -596,9 +671,147 @@
             alert('Sistema resetado com sucesso! Todas as configurações foram restauradas para o padrão.');
         }
 
+        // Funções para configuração da API
+        function carregarConfiguracoesAPI() {
+            // Carregar URL atual da API
+            const urlAtual = window.API_CONFIG ? window.API_CONFIG.getApiBaseUrl() : 'Não disponível';
+            document.getElementById('urlAtual').textContent = urlAtual;
+
+            // Carregar configuração salva
+            const configSalva = localStorage.getItem('api_config_manual');
+            if (configSalva) {
+                try {
+                    const config = JSON.parse(configSalva);
+                    const select = document.getElementById('apiUrl');
+                    
+                    if (config.url === 'auto') {
+                        select.value = 'auto';
+                    } else if (config.url && select.querySelector(`option[value="${config.url}"]`)) {
+                        select.value = config.url;
+                    } else if (config.url) {
+                        select.value = 'custom';
+                        document.getElementById('customApiUrl').value = config.url;
+                        document.getElementById('customUrlDiv').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Erro ao carregar configuração da API:', e);
+                }
+            }
+        }
+
+        function selecionarUrlAPI() {
+            const select = document.getElementById('apiUrl');
+            const customDiv = document.getElementById('customUrlDiv');
+            const salvarAuto = document.getElementById('salvarConfigAPI').checked;
+            
+            if (select.value === 'custom') {
+                customDiv.style.display = 'block';
+            } else {
+                customDiv.style.display = 'none';
+                
+                if (salvarAuto && window.API_CONFIG) {
+                    if (select.value === 'auto') {
+                        // Resetar para detecção automática
+                        localStorage.removeItem('api_config_manual');
+                        window.API_CONFIG.resetApiUrl();
+                    } else {
+                        // Salvar URL específica
+                        const config = { url: select.value, timestamp: Date.now() };
+                        localStorage.setItem('api_config_manual', JSON.stringify(config));
+                        window.API_CONFIG.setApiUrl(select.value);
+                    }
+                    
+                    // Atualizar URL atual
+                    document.getElementById('urlAtual').textContent = window.API_CONFIG.getApiBaseUrl();
+                    
+                    // Limpar status de conexão
+                    document.getElementById('statusConexao').innerHTML = '<i class="fas fa-question-circle"></i> Não testado';
+                    document.getElementById('statusConexao').className = 'alert alert-secondary';
+                }
+            }
+        }
+
+        function aplicarUrlPersonalizada() {
+            const customUrl = document.getElementById('customApiUrl').value.trim();
+            const salvarAuto = document.getElementById('salvarConfigAPI').checked;
+            
+            if (!customUrl) {
+                alert('Por favor, insira uma URL válida.');
+                return;
+            }
+            
+            if (salvarAuto && window.API_CONFIG) {
+                const config = { url: customUrl, timestamp: Date.now() };
+                localStorage.setItem('api_config_manual', JSON.stringify(config));
+                window.API_CONFIG.setApiUrl(customUrl);
+                
+                // Atualizar URL atual
+                document.getElementById('urlAtual').textContent = window.API_CONFIG.getApiBaseUrl();
+                
+                // Limpar status de conexão
+                document.getElementById('statusConexao').innerHTML = '<i class="fas fa-question-circle"></i> Não testado';
+                document.getElementById('statusConexao').className = 'alert alert-secondary';
+                
+                alert('URL personalizada aplicada com sucesso!');
+            }
+        }
+
+        async function testarConexaoAPI() {
+            const statusDiv = document.getElementById('statusConexao');
+            
+            // Mostrar carregando
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testando conexão...';
+            statusDiv.className = 'alert alert-info';
+            
+            try {
+                if (!window.API_CONFIG) {
+                    throw new Error('API_CONFIG não disponível');
+                }
+                
+                const baseUrl = window.API_CONFIG.getApiBaseUrl();
+                const response = await fetch(`${baseUrl.replace('/api/v1', '')}/health`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Conexão OK - ' + (data.message || 'API funcionando');
+                    statusDiv.className = 'alert alert-success';
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Erro: ' + error.message;
+                statusDiv.className = 'alert alert-danger';
+            }
+        }
+
+        function resetarConfigAPI() {
+            if (confirm('Tem certeza que deseja resetar as configurações da API para detecção automática?')) {
+                localStorage.removeItem('api_config_manual');
+                
+                if (window.API_CONFIG) {
+                    window.API_CONFIG.resetApiUrl();
+                }
+                
+                // Resetar interface
+                document.getElementById('apiUrl').value = 'auto';
+                document.getElementById('customUrlDiv').style.display = 'none';
+                document.getElementById('customApiUrl').value = '';
+                document.getElementById('statusConexao').innerHTML = '<i class="fas fa-question-circle"></i> Não testado';
+                document.getElementById('statusConexao').className = 'alert alert-secondary';
+                
+                // Atualizar URL atual
+                if (window.API_CONFIG) {
+                    document.getElementById('urlAtual').textContent = window.API_CONFIG.getApiBaseUrl();
+                }
+                
+                alert('Configurações da API resetadas com sucesso!');
+            }
+        }
+
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
             carregarConfiguracoes();
+            carregarConfiguracoesAPI();
             
             // Toggle entrega grátis
             document.getElementById('entregaGratis').addEventListener('change', toggleEntregaGratis);
@@ -612,7 +825,90 @@
             });
             
             confirmarResetBtn.addEventListener('click', confirmarReset);
+            
+            // Event listener para URL personalizada
+            document.getElementById('customApiUrl').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    aplicarUrlPersonalizada();
+                }
+            });
+            
+            // Event listener para botão de aplicar URL personalizada (se existir)
+            const applyBtn = document.getElementById('aplicarUrlPersonalizada');
+            if (applyBtn) {
+                applyBtn.addEventListener('click', aplicarUrlPersonalizada);
+            }
         });
     </script>
 </body>
 </html>
+
+                        <!-- Configurações da API -->
+                        <div class="col-lg-12">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                    <h6 class="m-0 font-weight-bold text-primary">
+                                        <i class="fas fa-server"></i> Configurações da API
+                                    </h6>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="testarConexaoAPI()">
+                                            <i class="fas fa-wifi"></i> Testar Conexão
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="resetarConfigAPI()">
+                                            <i class="fas fa-undo"></i> Resetar
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="apiUrl" class="form-label">URL da API</label>
+                                                <select class="form-select" id="apiUrl" onchange="selecionarUrlAPI()">
+                                                    <option value="auto">🔄 Detecção Automática</option>
+                                                    <option value="http://localhost:3000/api/v1">🏠 Local (localhost:3000)</option>
+                                                    <option value="http://192.168.18.104:3000/api/v1">🌐 Rede Local (192.168.18.104)</option>
+                                                    <option value="http://10.0.2.2:3000/api/v1">📱 Emulador Android</option>
+                                                    <option value="https://pastelaria-api.ayslano37.workers.dev/api/v1">☁️ Produção (Cloudflare)</option>
+                                                    <option value="custom">⚙️ URL Personalizada</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3" id="customUrlDiv" style="display: none;">
+                                                <label for="customApiUrl" class="form-label">URL Personalizada</label>
+                                                <input type="url" class="form-control" id="customApiUrl" placeholder="https://sua-api.com/api/v1">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">Status da Conexão</label>
+                                                <div id="statusConexao" class="alert alert-secondary">
+                                                    <i class="fas fa-question-circle"></i> Não testado
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">URL Atual</label>
+                                                <div class="form-control-plaintext bg-light p-2 rounded" id="urlAtual">
+                                                    Carregando...
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="mb-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="salvarConfigAPI" checked>
+                                                    <label class="form-check-label" for="salvarConfigAPI">
+                                                        Salvar configuração automaticamente
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>Dica:</strong> A detecção automática escolhe a melhor URL baseada no seu ambiente (móvel, emulador ou browser).
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
